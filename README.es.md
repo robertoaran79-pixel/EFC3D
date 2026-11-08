@@ -33,6 +33,11 @@ Para Mac y Windows · 100% en tu computadora · sin cuenta y sin suscripción.</
 
 Todos están en [Versiones](../../releases). El historial de cambios está en el [CHANGELOG](CHANGELOG.md).
 
+### Primera apertura
+- **Mac:** abre el .dmg y arrastra EFC3D a Aplicaciones. La app todavía no está notarizada por Apple, así que la primera vez macOS la bloquea. Haz clic derecho en EFC3D › Abrir. Si no aparece la opción, ve a Ajustes del Sistema › Privacidad y Seguridad y haz clic en **Abrir igualmente**.
+- **Windows:** si SmartScreen avisa, haz clic en **Más información › Ejecutar de todas formas**.
+- **Juntas en partes muy finas** (patas de modelos pequeños) pueden quedar en rojo: agranda el modelo, usa el Arco Bajo o importa una pieza de corte que tengas derecho a usar.
+
 ## Apoya
 EFC3D es gratuito para uso personal y sin fines comerciales. Si te fue útil, [apóyalo en GitHub Sponsors](https://github.com/sponsors/robertoaran79-pixel): eso es lo que mantiene el proyecto en marcha.
 

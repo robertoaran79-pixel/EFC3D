@@ -33,6 +33,11 @@ For Mac and Windows · 100% on your computer · no account and no subscription.<
 
 All of them are in [Releases](../../releases). The change history is in the [CHANGELOG](CHANGELOG.md).
 
+### First launch
+- **Mac:** open the .dmg and drag EFC3D to Applications. The app is not notarized by Apple yet, so macOS blocks it the first time. Right click EFC3D › Open. If that option does not show, go to System Settings › Privacy & Security and click **Open Anyway**.
+- **Windows:** if SmartScreen warns you, click **More info › Run anyway**.
+- **Joints on very thin parts** (legs of small models) may turn red: scale the model up, use the Low Arch or import a cut piece you have the right to use.
+
 ## Support
 EFC3D is free for personal and noncommercial use. If it helped you, [support it on GitHub Sponsors](https://github.com/sponsors/robertoaran79-pixel): that is what keeps the project going.
 
