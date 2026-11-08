@@ -4,6 +4,12 @@
 <p align="center"><b>Easy Flexy and Cuts 3D</b></p>
 <p align="center"><a href="README.md">Português</a> · <b>English</b> · <a href="README.es.md">Español</a></p>
 
+<p align="center">
+  <a href="https://github.com/sponsors/robertoaran79-pixel"><img src="https://img.shields.io/badge/Sponsor-%E2%99%A5-db61a2?logo=githubsponsors&logoColor=white" alt="Sponsor EFC3D on GitHub Sponsors"></a>
+  <a href="../../releases/latest"><img src="https://img.shields.io/github/v/release/robertoaran79-pixel/EFC3D?label=EFC3D" alt="Latest release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-PolyForm%20Noncommercial-555" alt="PolyForm Noncommercial license"></a>
+</p>
+
 <p align="center">Turn any 3D model into an <b>articulated flexi</b> or into <b>parts that fit together</b>, ready to print.<br>
 For Mac and Windows · 100% on your computer · no account and no subscription.</p>
 
@@ -38,8 +44,19 @@ All of them are in [Releases](../../releases). The change history is in the [CHA
 - **Windows:** if SmartScreen warns you, click **More info › Run anyway**.
 - **Joints on very thin parts** (legs of small models) may turn red: scale the model up, use the Low Arch or import a cut piece you have the right to use.
 
-## Support
-EFC3D is free for personal and noncommercial use. If it helped you, [support it on GitHub Sponsors](https://github.com/sponsors/robertoaran79-pixel): that is what keeps the project going.
+## Support EFC3D
+EFC3D is free for personal and noncommercial use, built by one person in their spare time. If it saved you time or gave you a nice flexi, please consider [sponsoring it on GitHub Sponsors](https://github.com/sponsors/robertoaran79-pixel). Any amount helps, monthly or one time, and 100% goes to the developer (GitHub charges no fee for sponsorships from personal accounts).
+
+What sponsorship pays for, in this order:
+- **Signed and notarized app** on Mac and Windows, with no security warning on first launch.
+- **A smaller own joint** for thin parts (legs of small models).
+- **Free cut with no sheet at the base** when the line goes down to the bed.
+- Time to answer bug reports and ship releases often.
+
+It also helps a lot, for free: star the repository, share your prints made with EFC3D and [report problems](../../issues).
+
+### Sponsors
+Thank you to everyone who supports the project. Sponsors are listed here (with your permission, at the tier you choose). Be the first!
 
 ## License
 [PolyForm Noncommercial 1.0.0](LICENSE): free to use, study and modify for noncommercial purposes. Commercial use needs permission. The own joints (RLA) are part of the project and follow the same license. Third-party libraries: [notices](AVISOS_DE_TERCEIROS.md).

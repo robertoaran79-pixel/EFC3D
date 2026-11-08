@@ -4,6 +4,12 @@
 <p align="center"><b>Easy Flexy and Cuts 3D</b></p>
 <p align="center"><a href="README.md">Português</a> · <a href="README.en.md">English</a> · <b>Español</b></p>
 
+<p align="center">
+  <a href="https://github.com/sponsors/robertoaran79-pixel"><img src="https://img.shields.io/badge/Sponsor-%E2%99%A5-db61a2?logo=githubsponsors&logoColor=white" alt="Patrocinar EFC3D en GitHub Sponsors"></a>
+  <a href="../../releases/latest"><img src="https://img.shields.io/github/v/release/robertoaran79-pixel/EFC3D?label=EFC3D" alt="Última versión"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licencia-PolyForm%20Noncommercial-555" alt="Licencia PolyForm Noncommercial"></a>
+</p>
+
 <p align="center">Convierte cualquier modelo 3D en un <b>flexi articulado</b> o en <b>piezas que encajan</b>, listas para imprimir.<br>
 Para Mac y Windows · 100% en tu computadora · sin cuenta y sin suscripción.</p>
 
@@ -38,8 +44,19 @@ Todos están en [Versiones](../../releases). El historial de cambios está en el
 - **Windows:** si SmartScreen avisa, haz clic en **Más información › Ejecutar de todas formas**.
 - **Juntas en partes muy finas** (patas de modelos pequeños) pueden quedar en rojo: agranda el modelo, usa el Arco Bajo o importa una pieza de corte que tengas derecho a usar.
 
-## Apoya
-EFC3D es gratuito para uso personal y sin fines comerciales. Si te fue útil, [apóyalo en GitHub Sponsors](https://github.com/sponsors/robertoaran79-pixel): eso es lo que mantiene el proyecto en marcha.
+## Apoya EFC3D
+EFC3D es gratuito para uso personal y sin fines comerciales, hecho por una sola persona en su tiempo libre. Si te ahorró tiempo o te dio un flexi bonito, considera [patrocinarlo en GitHub Sponsors](https://github.com/sponsors/robertoaran79-pixel). Cualquier monto ayuda, mensual o una sola vez, y el 100% va al desarrollador (GitHub no cobra comisión por patrocinios desde cuentas personales).
+
+Lo que paga el patrocinio, en este orden:
+- **App firmada y notarizada** en Mac y Windows, sin el aviso de seguridad al abrirla por primera vez.
+- **Una junta propia más pequeña** para partes finas (patas de modelos pequeños).
+- **Corte libre sin lámina en la base** cuando la línea baja hasta la cama.
+- Tiempo para responder reportes de problemas y publicar versiones seguido.
+
+También ayuda mucho, gratis: darle una ⭐ al repositorio, mostrar tus impresiones hechas con EFC3D y [reportar problemas](../../issues).
+
+### Patrocinadores
+Gracias a quienes apoyan el proyecto. Los patrocinadores aparecen aquí (con tu permiso, en el nivel que elijas). ¡Sé el primero!
 
 ## Licencia
 [PolyForm Noncommercial 1.0.0](LICENSE): uso, estudio y modificación libres con fines no comerciales. El uso comercial necesita autorización. Las juntas propias (RLA) son parte del proyecto y siguen la misma licencia. Bibliotecas de terceros: [avisos](AVISOS_DE_TERCEIROS.md).
