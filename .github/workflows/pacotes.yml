@@ -1,10 +1,11 @@
 # EFC3D (Easy Flexy and Cuts 3D): pacotes de instalação do Mac e do Windows.
 # - push na branch "ci": monta, roda o autoteste e deixa os pacotes num rascunho de versão ("ci-teste").
-# - tag vX.Y: monta, roda o autoteste e publica a versão com os pacotes e as novidades do CHANGELOG.md.
+# - tag vX.Y, ou push na branch "publicar": monta, roda o autoteste e publica a versão vX.Y (a versão de
+#   app/server.py) com os pacotes e as novidades do CHANGELOG.md.
 name: Pacotes
 on:
   push:
-    branches: [ci]
+    branches: [ci, publicar]
     tags: ['v*']
   workflow_dispatch:
 permissions:
@@ -132,7 +133,7 @@ jobs:
           python3 empacotar/novidades.py "$V" > novidades.md
           cat novidades.md
       - name: Rascunho de teste (branch ci)
-        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        if: ${{ github.ref == 'refs/heads/ci' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ci-teste
@@ -140,18 +141,22 @@ jobs:
           draft: true
           body_path: novidades.md
           files: pacotes/*
-      - name: Publicar a versão (tag)
-        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+      - name: Publicar a versão
+        if: ${{ startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/publicar' }}
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ env.V }}
+          target_commitish: ${{ github.sha }}
           name: EFC3D ${{ env.V }} · Easy Flexy and Cuts 3D
           body_path: novidades.md
           files: pacotes/*
           make_latest: true
-      - name: Apagar o rascunho de teste
-        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+      - name: Apagar o rascunho de teste e as branches de trabalho
+        if: ${{ startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/publicar' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete ci-teste --yes --cleanup-tag -R ${{ github.repository }} || true
-          git push origin --delete ci teste-ci || true
+          for b in ci teste-ci publicar ci-registro-mac-apple-silicon ci-registro-mac-intel ci-registro-windows; do
+            git push origin --delete "$b" || true
+          done
