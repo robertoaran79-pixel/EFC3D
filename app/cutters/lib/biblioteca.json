@@ -1,0 +1,264 @@
+{
+ "rla_arco": {
+  "placa": 2.637,
+  "folga": 0.395,
+  "nucleo_meio": [
+   6.75,
+   8.39,
+   8.72
+  ],
+  "caixa": [
+   -17.0,
+   -6.82,
+   -17.0,
+   17.0,
+   8.39,
+   17.0
+  ],
+  "tris": 4268,
+  "partes_teste": 2,
+  "aneis_fechados": [
+   1,
+   1
+  ],
+  "nome": "Arco (RLA)",
+  "arquivo": "rla_arco.stl",
+  "mecanismo": "elos",
+  "autor": "RLA LABS (próprio)",
+  "uso": "Arco: dois elos em D, uso geral (corpo, pescoço).",
+  "substitui": "fjm",
+  "fonte": "Autodesk Fusion (fusion_juntas_rla.py)"
+ },
+ "rla_arco_baixo": {
+  "placa": 1.852,
+  "folga": 0.396,
+  "nucleo_meio": [
+   7.11,
+   6.63,
+   8.31
+  ],
+  "caixa": [
+   -15.8,
+   -5.72,
+   -13.25,
+   15.8,
+   6.63,
+   13.25
+  ],
+  "tris": 4130,
+  "partes_teste": 2,
+  "aneis_fechados": [
+   1,
+   1
+  ],
+  "nome": "Arco Baixo (RLA)",
+  "arquivo": "rla_arco_baixo.stl",
+  "mecanismo": "elos",
+  "autor": "RLA LABS (próprio)",
+  "uso": "Arco baixo: costura fina e pouca profundidade.",
+  "substitui": "pc3",
+  "fonte": "Autodesk Fusion (fusion_juntas_rla.py)"
+ },
+ "rla_arco_grande": {
+  "placa": 8.85,
+  "folga": 0.386,
+  "nucleo_meio": [
+   13.47,
+   17.26,
+   18.93
+  ],
+  "caixa": [
+   -40.0,
+   -13.19,
+   -42.0,
+   40.0,
+   17.26,
+   42.0
+  ],
+  "tris": 3390,
+  "partes_teste": 2,
+  "aneis_fechados": [
+   1,
+   1
+  ],
+  "nome": "Arco Grande (RLA)",
+  "arquivo": "rla_arco_grande.stl",
+  "mecanismo": "elos",
+  "autor": "RLA LABS (próprio)",
+  "uso": "Arco grande: peças grandes.",
+  "substitui": "flexicutter",
+  "fonte": "Autodesk Fusion (fusion_juntas_rla.py)"
+ },
+ "rla_concha": {
+  "placa": 3.175,
+  "folga": 0.395,
+  "nucleo_meio": [
+   7.0,
+   10.13,
+   8.3
+  ],
+  "caixa": [
+   -17.9,
+   -10.13,
+   -13.5,
+   17.9,
+   3.47,
+   13.5
+  ],
+  "tris": 4896,
+  "partes_teste": 2,
+  "aneis_fechados": [
+   1,
+   1
+  ],
+  "nome": "Concha (RLA)",
+  "arquivo": "rla_concha.stl",
+  "mecanismo": "elos",
+  "autor": "RLA LABS (próprio)",
+  "uso": "Concha: costura curva que esconde a junta.",
+  "substitui": "pc1",
+  "fonte": "Autodesk Fusion (fusion_juntas_rla.py)"
+ },
+ "rla_concha_compacta": {
+  "placa": 3.488,
+  "folga": 0.395,
+  "nucleo_meio": [
+   6.7,
+   9.12,
+   8.0
+  ],
+  "caixa": [
+   -15.0,
+   -9.12,
+   -12.2,
+   15.0,
+   3.49,
+   12.2
+  ],
+  "tris": 4534,
+  "partes_teste": 2,
+  "aneis_fechados": [
+   1,
+   1
+  ],
+  "nome": "Concha Compacta (RLA)",
+  "arquivo": "rla_concha_compacta.stl",
+  "mecanismo": "elos",
+  "autor": "RLA LABS (próprio)",
+  "uso": "Concha compacta: costura curva em peças menores.",
+  "substitui": "pc2",
+  "fonte": "Autodesk Fusion (fusion_juntas_rla.py)"
+ },
+ "rla_elo": {
+  "placa": 2.681,
+  "folga": 0.844,
+  "nucleo_meio": [
+   7.81,
+   5.87,
+   7.81
+  ],
+  "caixa": [
+   -17.0,
+   -4.86,
+   -17.0,
+   17.0,
+   5.87,
+   17.0
+  ],
+  "tris": 2980,
+  "partes_teste": 2,
+  "aneis_fechados": [
+   1,
+   1
+  ],
+  "nome": "Elo Losango (RLA)",
+  "arquivo": "rla_elo.stl",
+  "mecanismo": "elos",
+  "autor": "RLA LABS (próprio)",
+  "uso": "Elos em losango: uso geral (corpo, pescoço). Faces a 45°, quase nada em balanço."
+ },
+ "rla_elo_duplo": {
+  "placa": 2.681,
+  "folga": 0.844,
+  "nucleo_meio": [
+   15.02,
+   5.87,
+   7.81
+  ],
+  "caixa": [
+   -17.0,
+   -4.86,
+   -17.0,
+   17.0,
+   5.87,
+   17.0
+  ],
+  "tris": 6816,
+  "partes_teste": 2,
+  "aneis_fechados": [
+   2,
+   2
+  ],
+  "nome": "Elo Duplo (RLA)",
+  "arquivo": "rla_elo_duplo.stl",
+  "mecanismo": "elos",
+  "autor": "RLA LABS (próprio)",
+  "uso": "Elo duplo: partes largas (corpo achatado). Mais forte e não torce."
+ },
+ "rla_rotula": {
+  "placa": 2.669,
+  "folga": 0.721,
+  "nucleo_meio": [
+   5.85,
+   14.65,
+   5.85
+  ],
+  "caixa": [
+   -17.0,
+   -1.35,
+   -17.0,
+   17.0,
+   14.65,
+   17.0
+  ],
+  "tris": 2530,
+  "partes_teste": 2,
+  "aneis_fechados": [
+   4,
+   0
+  ],
+  "nome": "Rótula Diamante (RLA)",
+  "arquivo": "rla_rotula.stl",
+  "mecanismo": "captiva",
+  "autor": "RLA LABS (próprio)",
+  "uso": "Rótula: seção pequena e redonda (patas, braços). Gira em todas as direções."
+ },
+ "rla_ancora": {
+  "placa": 2.662,
+  "folga": 0.781,
+  "nucleo_meio": [
+   6.27,
+   8.77,
+   2.57
+  ],
+  "caixa": [
+   -17.0,
+   -1.35,
+   -17.0,
+   17.0,
+   8.77,
+   17.0
+  ],
+  "tris": 936,
+  "partes_teste": 2,
+  "aneis_fechados": [
+   2,
+   0
+  ],
+  "nome": "Âncora T (RLA)",
+  "arquivo": "rla_ancora.stl",
+  "mecanismo": "captiva",
+  "autor": "RLA LABS (próprio)",
+  "uso": "Âncora T: partes baixas e largas (rabo, orelha). Precisa de pouca altura."
+ }
+}

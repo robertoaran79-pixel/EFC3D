@@ -1,0 +1,8 @@
+numpy>=1.26
+scipy>=1.11
+manifold3d>=3.1
+trimesh>=4.0
+shapely>=2.0
+pillow>=10.0
+scikit-image>=0.21
+rtree>=1.0

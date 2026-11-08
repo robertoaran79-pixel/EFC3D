@@ -1,0 +1,157 @@
+# EFC3D (Easy Flexy and Cuts 3D): pacotes de instalação do Mac e do Windows.
+# - push na branch "ci": monta, roda o autoteste e deixa os pacotes num rascunho de versão ("ci-teste").
+# - tag vX.Y: monta, roda o autoteste e publica a versão com os pacotes e as novidades do CHANGELOG.md.
+name: Pacotes
+on:
+  push:
+    branches: [ci]
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: pacotes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mac:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            arq: apple-silicon
+          - os: macos-15-intel
+            arq: intel
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.arq == 'intel' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Montar
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p registro saida
+          {
+            python -m pip install --upgrade pip
+            python -m pip install -r app/requirements.txt "pywebview>=5.0" "pyinstaller>=6.6"
+            pyinstaller --noconfirm --clean --distpath dist --workpath build empacotar/efc3d.spec
+          } 2>&1 | tee registro/mac-${{ matrix.arq }}-montar.txt
+      - name: Autoteste do app montado
+        shell: bash
+        run: |
+          set -o pipefail
+          dist/EFC3D.app/Contents/MacOS/EFC3D --autoteste "$RUNNER_TEMP/auto" 2>&1 | tee registro/mac-${{ matrix.arq }}-autoteste.txt
+      - name: Imagem de disco (.dmg)
+        shell: bash
+        run: |
+          set -o pipefail
+          V=$(python -c "import re;print(re.search(r\"VERSION = '([^']+)'\",open('app/server.py').read()).group(1))")
+          codesign --force --deep --sign - dist/EFC3D.app
+          mkdir -p dmg && cp -R dist/EFC3D.app dmg/ && ln -s /Applications dmg/Applications
+          # o hdiutil dos runners do GitHub às vezes falha com "Resource busy": tenta de novo
+          ok=0
+          for i in 1 2 3 4 5; do
+            if hdiutil create -volname "EFC3D $V" -srcfolder dmg -ov -format UDZO "saida/EFC3D-$V-mac-${{ matrix.arq }}.dmg" >> registro/mac-${{ matrix.arq }}-dmg.txt 2>&1; then ok=1; break; fi
+            echo "tentativa $i falhou" >> registro/mac-${{ matrix.arq }}-dmg.txt; sleep 15
+          done
+          cat registro/mac-${{ matrix.arq }}-dmg.txt
+          [ $ok = 1 ]
+          ls -la saida
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mac-${{ matrix.arq }}
+          path: saida/*.dmg
+      - name: Guardar o registro
+        if: always()
+        shell: bash
+        run: bash empacotar/guardar_registro.sh mac-${{ matrix.arq }}
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Montar
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p registro saida
+          {
+            python -m pip install --upgrade pip
+            python -m pip install -r app/requirements.txt "pywebview>=5.0" "pyinstaller>=6.6"
+            python empacotar/gerar_versao_windows.py
+            pyinstaller --noconfirm --clean --distpath dist --workpath build empacotar/efc3d.spec
+          } 2>&1 | tee registro/windows-montar.txt
+      - name: Autoteste do app montado
+        shell: bash
+        run: |
+          set -o pipefail
+          ./dist/EFC3D/EFC3D.exe --autoteste "$RUNNER_TEMP/auto" > registro/windows-autoteste.txt 2>&1 || (cat registro/windows-autoteste.txt; exit 1)
+          cat registro/windows-autoteste.txt
+          python -c "import json,os,sys; r=json.load(open(os.path.join(os.environ['RUNNER_TEMP'],'auto','autoteste.json'),encoding='utf-8')); print(r.get('ok')); sys.exit(0 if r.get('ok') else 1)"
+      - name: Instalador (.exe)
+        shell: bash
+        run: |
+          set -o pipefail
+          V=$(python -c "import re;print(re.search(r\"VERSION = '([^']+)'\",open('app/server.py').read()).group(1))")
+          ISCC="/c/Program Files (x86)/Inno Setup 6/ISCC.exe"
+          if [ ! -f "$ISCC" ]; then choco install innosetup -y --no-progress; fi
+          "$ISCC" "//DVersao=$V" "//DOrigem=dist\\EFC3D" empacotar/efc3d.iss 2>&1 | tee registro/windows-instalador.txt
+          ls -la saida
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: saida/*.exe
+      - name: Guardar o registro
+        if: always()
+        shell: bash
+        run: bash empacotar/guardar_registro.sh windows
+
+  versao:
+    needs: [mac, windows]
+    if: ${{ !cancelled() && needs.windows.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: pacotes
+          merge-multiple: true
+      - name: Novidades desta versão
+        shell: bash
+        run: |
+          ls -la pacotes
+          V=$(python3 -c "import re;print(re.search(r\"VERSION = '([^']+)'\",open('app/server.py').read()).group(1))")
+          echo "V=$V" >> $GITHUB_ENV
+          python3 empacotar/novidades.py "$V" > novidades.md
+          cat novidades.md
+      - name: Rascunho de teste (branch ci)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ci-teste
+          name: EFC3D ${{ env.V }} (teste, não publicar)
+          draft: true
+          body_path: novidades.md
+          files: pacotes/*
+      - name: Publicar a versão (tag)
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: softprops/action-gh-release@v2
+        with:
+          name: EFC3D ${{ env.V }} · Easy Flexy and Cuts 3D
+          body_path: novidades.md
+          files: pacotes/*
+          make_latest: true
+      - name: Apagar o rascunho de teste
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete ci-teste --yes --cleanup-tag -R ${{ github.repository }} || true
+          git push origin --delete ci teste-ci || true

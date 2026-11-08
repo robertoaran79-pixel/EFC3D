@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EFC3D · Easy Flexy and Cuts 3D</title>
+<link rel="icon" type="image/png" href="icon.png">
+<script>try{var t=localStorage.getItem('flexi-tema');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}</script>
+<script src="i18n.js?v=1.47"></script>
+<script src="plat.js?v=1.47"></script>
+<script src="itens.js?v=1.47"></script>
+<link rel="stylesheet" href="style.css?v=1.47">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }
+</script>
+</head>
+<body>
+<div id="topbar" role="banner">
+  <div class="tb-left">
+    <img src="icon.png" alt="" class="logo">
+    <button id="file-btn" class="tb-menu" aria-haspopup="true" aria-expanded="false" title="Abrir, salvar, recentes e pasta de saída">Arquivo ▾</button>
+    <div id="file-menu" class="file-menu hidden" role="menu">
+  <!-- Arquivo: tudo de abrir e salvar num lugar só -->
+  <section id="s-file" class="filebar">
+    <div class="grid2">
+      <button id="btn-open" class="btn" title="⌘O · modelo (STL, GLB, OBJ, .zip) ou projeto (.flexiproj)">📂 Abrir…</button>
+      <button id="btn-recent" class="btn" title="Projetos e modelos abertos recentemente" aria-haspopup="true" aria-expanded="false">🕘 Recentes ▾</button>
+      <button id="btn-proj-save" class="btn" title="⌘S">💾 Salvar projeto</button>
+      <button id="btn-proj-saveas" class="btn" title="⇧⌘S">Salvar como…</button>
+    </div>
+    <div id="recent-menu" class="recent-menu hidden" role="menu"></div>
+    <input id="proj-file" type="file" accept=".flexiproj,.json" hidden>
+    <div id="save-info" class="info"></div>
+    <button id="btn-restore" class="btn hidden"></button>
+    <details class="adv"><summary>⚙ Pasta onde salvar</summary>
+      <p class="hint">Exportações, cupons e projetos novos vão para:</p>
+      <div id="out-dir" class="info"></div>
+      <div class="row"><button id="out-change" class="btn">Alterar pasta…</button><button id="out-default" class="btn">Usar a padrão</button><button id="out-reveal" class="btn">Abrir no Finder</button></div>
+    </details>
+  </section>
+
+    </div>
+    <div class="tb-quick">
+      <button class="tb-ico" data-proxy="#btn-proj-save" title="Salvar projeto (⌘S)" aria-label="Salvar projeto">💾</button>
+      <button class="tb-ico" id="tb-undo" title="Desfazer (⌘Z)" aria-label="Desfazer">↶</button>
+    </div>
+  </div>
+  <nav id="tabs" role="tablist" aria-label="Etapas">
+    <button role="tab" data-tab="modelo"><span class="tn">1</span> Modelo</button>
+    <button role="tab" data-tab="juntas"><span class="tn">2</span> Juntas</button>
+    <button role="tab" data-tab="cores"><span class="tn">3</span> Cores</button>
+    <button role="tab" data-tab="cortes"><span class="tn">4</span> Cortes</button>
+    <button role="tab" data-tab="exportar"><span class="tn">5</span> Exportar</button>
+  </nav>
+  <div class="tb-right" id="hdr-tools">
+    <span class="tb-title" title="Easy Flexy and Cuts 3D">EFC3D <span id="versao" class="tb-ver"></span></span>
+    <button id="btn-help" class="btn hl-btn" title="Ajuda (tecla ?)" aria-label="Ajuda">❓</button>
+    <button id="btn-mcp" class="btn hl-btn" title="Controle pelo Claude (MCP)" aria-label="Controle pelo Claude">🤖</button>
+    <div class="seg theme-seg" id="theme-seg" role="group" aria-label="Tema">
+      <button data-theme-set="light" title="Modo claro" aria-label="Modo claro">☀</button>
+      <button data-theme-set="auto" title="Automático (segue o macOS)" aria-label="Automático">A</button>
+      <button data-theme-set="dark" title="Modo escuro" aria-label="Modo escuro">☾</button>
+    </div>
+    <select id="pen-sel" class="tb-lang" title="Espessura da linha de marcação (vale para todos os módulos)" aria-label="Espessura da linha de marcação">
+      <option value="fina">✏ Fina</option>
+      <option value="media">✏ Média</option>
+      <option value="grossa">✏ Grossa</option>
+    </select>
+    <select id="lang-sel" class="tb-lang" data-no-i18n title="Idioma · Language · Idioma" aria-label="Idioma · Language · Idioma">
+      <option value="pt">🇧🇷 Português</option>
+      <option value="en">🇺🇸 English</option>
+      <option value="es">🇪🇸 Español</option>
+    </select>
+  </div>
+</div>
+<div id="ribbon" role="toolbar" aria-label="Ferramentas da etapa"></div>
+<div id="work">
+<nav id="browser" aria-label="Navegador">
+  <div class="br-head"><b>NAVEGADOR</b><button id="br-fold" class="tb-ico" title="Recolher o navegador" aria-label="Recolher o navegador">⟨</button></div>
+  <div id="br-tree"></div>
+</nav>
+
+
+<main id="view">
+  <div id="toolbar">
+    <div class="tgroup"><span class="tlabel">Câmera</span>
+      <div class="seg">
+        <button data-cam="iso" class="on">3D</button>
+        <button data-cam="top">Topo</button>
+        <button data-cam="side">Lado</button>
+        <button data-cam="joint">Junta</button>
+      </div>
+    </div>
+    <div class="tgroup"><span class="tlabel">Ver</span>
+      <div class="seg">
+        <button id="t-orig" class="on" title="O modelo aberto, com juntas e pintura">Modelo</button>
+        <button id="t-prevp" title="Peças por cor e cortes livres juntos, como na exportação">Prévia</button>
+        <button id="t-pieces" title="As peças da última exportação">Exportado</button>
+      </div>
+      <label class="chk tb hidden" id="pc-gaprow" title="Afasta as peças para ver os encaixes">Afastar <input type="range" id="pc-gap" min="0" max="40" step="1" value="12"></label>
+      <div class="seg hidden" id="mesa-seg" title="Peças montadas ou como vão na mesa da impressora. Arraste uma peça para afastá-la (Shift + arrastar sobe e desce).">
+        <button data-mesa="montado" class="on">Montado</button>
+        <button data-mesa="mesa">Na mesa</button>
+        <button id="pc-reset" title="Volta as peças arrastadas para o lugar">↺ Repor posições</button>
+      </div>
+      <div class="seg hidden" id="pcol-seg" title="Cores das peças">
+        <button data-pcol="pintura" class="on">Pintura</button>
+        <button data-pcol="peca">Por peça</button>
+      </div>
+    </div>
+    <div class="tgroup" id="tg-junta"><span class="tlabel">Junta</span>
+      <div class="seg" id="gizmo-seg">
+      <button data-gz="all" class="on" title="Tecla A: mover arrastando a peça, girar pelos anéis e escala pelas alças, tudo ao mesmo tempo">Tudo (A)</button>
+      <button data-gz="translate" title="Tecla M: setas para mover. Arrastar a peça de corte também move (Shift sobe e desce)">Mover (M)</button>
+      <button data-gz="rotate" title="Tecla R: anéis para girar (Shift em passos de 15°)">Girar (R)</button>
+      <button data-gz="scale" title="Tecla S: caixa com alças. Faces mudam um eixo, cantos mudam todos">Escala (S)</button>
+    </div>
+    <button id="gz-space" class="btn tbtn" title="Direção das setas e anéis">Eixos: da junta</button>
+    </div>
+    <div class="tgroup"><span class="tlabel">Mostrar</span>
+      <label class="chk tb"><input id="t-prev" type="checkbox" checked> Cortes das juntas</label>
+      <label class="chk tb"><input id="t-sec" type="checkbox"> Seção</label>
+      <input id="sec-off" type="range" min="-15" max="15" step="0.1" value="0" class="hidden" title="Posição do plano de seção">
+      <label class="chk tb"><input id="t-ov" type="checkbox"> Balanço</label>
+    </div>
+  </div>
+  <div id="canvas"></div>
+  <div id="viewcube" aria-label="Cubo de vistas: clique numa face ou canto"><div class="vc-cube" id="vc-cube"></div><div id="vc-corners"></div><button id="vc-home" class="vc-home" title="Vista inicial (Home)" aria-label="Vista inicial">⌂</button></div>
+  <div id="navbar" role="toolbar" aria-label="Navegação"></div>
+  <div id="status">Pronto.</div>
+</main>
+<aside id="side" aria-label="Painel do comando">
+  <div class="cmd-head"><b id="cmd-title">Modelo</b><button id="cmd-fold" class="tb-ico" title="Recolher o painel" aria-label="Recolher o painel">⟩</button></div>
+  <section id="s-model" data-tab="modelo">
+    <h2><span class="n">1</span> Modelo</h2>
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept=".stl,.glb,.gltf,.obj,.zip,.flexiproj">
+      <span id="drop-text">Arraste um STL, um modelo com cores (GLB, OBJ ou .zip) ou um projeto aqui, ou clique para escolher</span>
+    </label>
+    <div id="model-info" class="info"></div>
+    <details class="adv"><summary>Ajustar tamanho e base</summary>
+      <p class="hint">Ao abrir, o modelo já é centralizado e apoiado na mesa. Arquivos sem unidade viram 120 mm no lado maior (uma figura em pé fica com 120 mm de altura). Achatar a base apoia mais área na mesa (na sua versão manual foram cerca de 1,3 mm, o que apoiou o rabo).</p>
+      <div class="grid2">
+        <label>Comprimento (mm)<input id="p-len" type="number" min="0" step="1" placeholder="manter"></label>
+        <label>Simetria<select id="p-mir"><option value="none">nenhuma</option><option value="+x">espelhar lado +X</option><option value="-x">espelhar lado −X</option></select></label>
+        <label>Achatar base (mm)<input id="p-flat" type="number" min="0" step="0.1" value="0.3"></label>
+        <label>Simplificar (mm)<input id="p-simp" type="number" min="0" step="0.005" value="0.005" title="Desvio máximo ao tirar triângulos repetidos: 0 mantém todos; 0,005 mm não muda nada na impressão; 0,02 mm qualidade média; 0,05 mm baixa."></label>
+      </div>
+      <label class="chk"><input id="p-center" type="checkbox" checked> Centralizar e apoiar na mesa</label>
+      <button id="btn-prep" class="btn">Aplicar</button>
+      <p class="hint">Mudar o tamanho mantém as juntas onde estão: confira e verifique de novo.</p>
+    </details>
+    <details class="adv" id="prompts-det"><summary>Criar o animal com IA (prompts do ChatGPT)</summary>
+      <button id="btn-prompts" class="btn wide hidden">Prompts</button>
+      <div id="prompt-box" class="card">
+      <label>Animal (em inglês, como no prompt)<input id="pr-animal" type="text" placeholder="ex.: cat, fox, red panda"></label>
+      <p class="hint">1. Cole o prompt 1 no ChatGPT para criar a imagem do animal. 2. Na mesma conversa, cole o prompt 2 para as vistas de frente, lados e costas.</p>
+      <label>Prompt 1 (criar o animal)<textarea id="pr-1" rows="7" readonly></textarea></label>
+      <button id="pr-copy1" class="btn">Copiar prompt 1</button>
+      <label>Prompt 2 (vistas ortográficas)<textarea id="pr-2" rows="4" readonly></textarea></label>
+      <button id="pr-copy2" class="btn">Copiar prompt 2</button>
+      <div class="row">
+        <label class="chk"><input id="pr-edit" type="checkbox"> Editar textos base</label>
+        <button id="pr-reset" class="btn">Restaurar originais</button>
+      </div>
+      <p id="pr-hint" class="hint"></p>
+    </div>
+    </details>
+  </section>
+
+  <section id="s-joints" data-tab="juntas">
+    <h2><span class="n">2</span> Juntas</h2>
+    <label>Peça de corte para novas juntas<select id="cut-type"></select></label>
+    <p id="cut-uso" class="hint"></p>
+    <div class="row">
+      <button id="btn-add" class="btn primary">＋ Adicionar junta</button>
+      <button id="btn-suggest" class="btn">Sugerir juntas</button>
+      <span class="btn" id="btn-imp-wrap" title="Importar uma peça de corte sua (STL)">Importar peça de corte…<input id="cut-file" type="file" accept=".stl" hidden></span>
+    </div>
+    <ol id="joint-list"></ol>
+    <div id="joint-edit" class="card hidden"></div>
+  </section>
+
+  <section id="s-paint" data-tab="cores">
+    <h2><span class="n">3</span> Cores</h2>
+    <div id="tex-box" class="card hidden">
+      <div class="lbl3">🎨 Cores da textura</div>
+      <p class="hint">O modelo veio com textura: a pintura já foi feita a partir dela, com as cores agrupadas em filamentos. Ajuste e refaça se quiser; depois retoque com o pincel.</p>
+      <div class="grid2">
+        <label>Filamentos<select id="tex-k"><option value="">automático</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label>
+        <label>Limpar manchas até (mm²)<input id="tex-clean" type="number" min="0" step="0.5" value="2"></label>
+      </div>
+      <button id="tex-apply" class="btn">Refazer pintura pela textura</button>
+    </div>
+    <button id="btn-paint" class="btn wide">🖌 Pintar o modelo</button>
+    <div id="paint-box" class="card hidden">
+      <div class="lbl3">Filamentos (a cor 1 é o filamento base, sem pintura)</div>
+      <div id="palette" class="palette"></div>
+      <div class="row"><button id="pal-add" class="btn">＋ Cor</button><button id="pal-del" class="btn">− Última cor</button></div>
+      <div class="lbl3">Ferramenta</div>
+      <div class="seg" id="tool-seg">
+        <button data-tool="brush" class="on" title="Tecla B">🖌 Pincel (B)</button>
+        <button data-tool="fill" title="Tecla F">🪣 Balde (F)</button>
+        <button data-tool="band" title="Tecla H">▤ Faixa de altura (H)</button>
+        <button data-tool="contour" title="Tecla L">✏ Linha (L)</button>
+        <button data-tool="erase" title="Tecla E: apaga a pintura (volta à cor 1) e as linhas que tocar">🧽 Borracha (E)</button>
+      </div>
+      <div id="tool-brush" class="tool">
+        <label>Tamanho do pincel: <span id="brush-v">3 mm</span><input type="range" id="brush-r" min="0.5" max="20" step="0.5" value="3"></label>
+        <label class="chk"><input id="brush-vis" type="checkbox" checked> Pintar só o lado visível</label>
+      </div>
+      <div id="tool-fill" class="tool hidden">
+        <label>Como o balde para<select id="fill-mode">
+          <option value="direcao" selected>Na mudança de direção em relação ao ponto clicado</option>
+          <option value="dobra">Em dobras entre triângulos vizinhos (como no OrcaSlicer)</option>
+        </select></label>
+        <label>Ângulo limite: <span id="fill-v">30°</span><input type="range" id="fill-a" min="1" max="180" step="1" value="30"></label>
+        <label class="chk"><input id="fill-same" type="checkbox" checked> Só a área da mesma cor</label>
+        <p class="hint">Clique no modelo: pinta a área ligada ao ponto. "Direção" pinta o que está virado para o mesmo lado do ponto clicado, dentro do ângulo (bom em modelos lisos). "Dobras" para nas quinas vivas; em modelos orgânicos e lisos ele espalha muito. 180° pinta a parte inteira.</p>
+      </div>
+      <div id="tool-contour" class="tool hidden">
+        <p class="hint">Para modelos orgânicos (figuras de IA), onde o balde vaza: clique pontos em volta da área, como a linha do cabelo ou o punho da manga. A linha segue a superfície. Clique no primeiro ponto (ou Enter) para fechar: o modo muda para "Pintar dentro"; passe o mouse para ver a área e clique. É a mesma Linha do Corte livre.</p>
+        <div class="seg" id="ct-mode"><button data-ctm="tracar" class="on">✏ Traçar</button><button data-ctm="pintar">🪣 Pintar dentro</button></div>
+        <label class="chk"><input id="ct-same" type="checkbox" checked> Parar também onde já há outra cor</label>
+        <div class="row"><button id="ct-close" class="btn">Fechar a linha (Enter)</button><button id="ct-undo" class="btn">Desfazer ponto (Backspace)</button><button id="ct-clear" class="btn">Apagar linhas</button></div>
+      </div>
+      <div id="tool-band" class="tool hidden">
+        <div class="grid2">
+          <label>De Z (mm)<input id="band-z0" type="number" step="0.2" value="0"></label>
+          <label>Até Z (mm)<input id="band-z1" type="number" step="0.2" value="2"></label>
+        </div>
+        <label class="chk"><input id="band-exact" type="checkbox" checked> Borda exata (divide os triângulos na altura)</label>
+        <button id="band-apply" class="btn primary">Pintar a faixa com a cor escolhida</button>
+        <p class="hint">Clique no modelo para pegar a altura em "De Z"; Shift + clique para "Até Z". As duas linhas na tela mostram a faixa.</p>
+      </div>
+      <div class="row"><button id="paint-undo" class="btn">↶ Desfazer (⌘Z)</button><button id="paint-clear" class="btn">Limpar pintura</button><button id="paint-done" class="btn primary">✓ Concluir (Enter)</button></div>
+      <p class="hint">Botão esquerdo pinta; Shift desfaz a pintura (volta para a cor 1). Botão direito, ou Espaço + arrastar, gira a vista. Option + roda muda o tamanho do pincel. Enter conclui; Esc sai.</p>
+    </div>
+    <div id="area-box" class="hidden">
+      <div class="lbl3">Áreas pintadas</div>
+      <ol id="area-list" class="items"></ol>
+      <div id="area-more" class="hint"></div>
+    </div>
+  </section>
+
+  <section id="s-split" data-tab="cortes">
+    <h2><span class="n">4</span> Separar peças por cor <span class="newtag">novo</span></h2>
+    <button id="btn-split" class="btn wide">✂ Separar por cor</button>
+    <div id="split-box" class="card hidden">
+      <p class="hint">Cada área pintada pode virar uma peça para imprimir à parte e encaixar: um tampão embutido (olho, nariz, detalhe de roupa) ou um membro cortado por plano (braço, perna). Clique numa área no modelo ou na lista. Não mexe nas juntas nem no modelo aberto.</p>
+      <ol id="split-list"></ol>
+      <div id="split-edit"></div>
+      <div class="row">
+        <button id="split-prev" class="btn primary">Prévia das peças</button>
+        <button id="split-done" class="btn primary">✓ Concluir (Enter)</button>
+      </div>
+      <p class="hint">As áreas marcadas saem na aba Exportar, com ou sem juntas.</p>
+      <div id="split-report"></div>
+    </div>
+  </section>
+
+  <section id="s-free" data-tab="cortes">
+    <h2><span class="n">5</span> Corte livre <span class="newtag">novo</span></h2>
+    <p class="hint">Corte qualquer parte desenhando a linha do corte ou marcando a parte com pincel ou balde. O corte só pega o que você indicou: não é um plano que atravessa o modelo inteiro, como no fatiador.</p>
+    <button id="fc-new" class="btn wide">✂ Novo corte</button>
+    <button id="pm-new" class="btn wide" title="Depois de cortar uma parte (o cabelo), desenhe o próximo corte sobre a peça que sobrou, inclusive nas faces de corte (a nuca)">✂ Novo corte numa peça já recortada</button>
+    <div id="pm-card" class="card hidden" role="region" aria-label="Corte numa peça">
+      <div class="lbl3">Novo corte numa peça: <b>escolha a peça</b></div>
+      <p class="hint">Clique na peça que quer cortar (a mãozinha aparece sobre ela). A peça aparece sozinha, como saiu do corte, e você marca com as mesmas ferramentas do Corte livre: linha, pincel, balde e borracha, inclusive nas faces de corte. Botão direito gira a vista; Esc cancela.</p>
+      <div class="row"><button id="pm-cancel" class="btn">Cancelar</button></div>
+    </div>
+    <div id="fc-mark" class="card hidden" role="region" aria-label="Marcação do corte">
+      <div class="lbl3">Marcando: <b id="fc-mark-name">Corte</b></div>
+      <div class="seg fc-tools" id="fc-tools" role="group" aria-label="Ferramenta de marcação">
+        <button data-fct="linha" title="Tecla L">✏ Linha (L)</button>
+        <button data-fct="pincel" title="Tecla B">🖌 Pincel (B)</button>
+        <button data-fct="balde" title="Tecla F">🪣 Balde (F)</button>
+        <button data-fct="borracha" title="Tecla E: desmarca a área e apaga as linhas que tocar">🧽 Borracha (E)</button>
+      </div>
+      <div id="fc-opt-linha" class="tool">
+        <p class="hint">Clique pontos em volta da parte que vai sair; a linha segue a superfície. Clique no primeiro ponto ou tecle Enter para fechar.</p>
+        <div class="row"><button id="fc-close" class="btn">Fechar a linha (Enter)</button><button id="fc-undo-pt" class="btn">Desfazer ponto (Backspace)</button></div>
+      </div>
+      <div id="fc-opt-pincel" class="tool hidden">
+        <label>Tamanho do pincel: <span id="fc-brush-v">3,0 mm</span><input type="range" id="fc-brush-r" min="0.5" max="20" step="0.5" value="3"></label>
+        <label class="chk"><input id="fc-brush-vis" type="checkbox" checked> Marcar só o lado visível</label>
+        <p class="hint">Arraste sobre a parte que vai sair. Shift + arrastar desmarca. [ e ] mudam o tamanho.</p>
+      </div>
+      <div id="fc-opt-balde" class="tool hidden">
+        <label>Como o balde para<select id="fc-fill-mode">
+          <option value="direcao" selected>Na mudança de direção em relação ao ponto clicado</option>
+          <option value="dobra">Em dobras entre triângulos vizinhos (como no OrcaSlicer)</option>
+        </select></label>
+        <label>Ângulo limite: <span id="fc-fill-v">30°</span><input type="range" id="fc-fill-a" min="1" max="180" step="1" value="30"></label>
+        <label class="chk"><input id="fc-fill-stop" type="checkbox" checked> Parar nas linhas deste corte</label>
+        <p class="hint">Passe o mouse para ver a área e clique para marcar; Shift + clique desmarca. Em modelos de IA o balde costuma vazar: desenhe antes uma linha onde ele deve parar.</p>
+      </div>
+      <div id="fc-mark-info" class="info"></div>
+      <div class="row"><button id="fc-undo" class="btn">↶ Desfazer (⌘Z)</button><button id="fc-clear" class="btn">Limpar</button><button id="fc-done" class="btn primary">✓ Concluir (Enter)</button></div>
+      <p class="hint">A área marcada é a peça que sai; a borda dela vira a linha do corte. A marcação não muda a cor de impressão. Botão direito ou Espaço + arrastar gira a vista.</p>
+    </div>
+    <ol id="fc-list" class="fc-list"></ol>
+    <div id="fc-edit"></div>
+    <div class="row hidden" id="fc-actions">
+      <button id="fc-prev" class="btn primary">Prévia das peças</button>
+    </div>
+    <div id="fc-report"></div>
+    <div id="cn-box"></div>
+    <p class="hint">Os cortes saem na aba Exportar, junto com juntas e peças por cor, se houver.</p>
+  </section>
+
+  <section id="s-plane" data-tab="cortes">
+    <h2><span class="n">6</span> Corte plano <span class="newtag">novo</span></h2>
+    <p class="hint">Como no OrcaSlicer e no Bambu Studio: um plano com altura e inclinação em qualquer direção atravessa tudo o que cruza e divide em duas partes com faces planas, que vão para a mesa na impressão. Fica separado do Corte livre e é feito depois dele.</p>
+    <button id="pl-new" class="btn wide">▭ Novo plano</button>
+    <ol id="pl-list" class="fc-list"></ol>
+    <div id="pl-edit"></div>
+    <div class="row hidden" id="pl-actions">
+      <button id="pl-prev" class="btn primary">Prévia das peças</button>
+    </div>
+    <div id="pl-report"></div>
+    <p class="hint">Os planos saem na aba Exportar, junto com juntas, peças por cor e cortes livres.</p>
+  </section>
+
+  <section id="s-exp" data-tab="exportar">
+    <h2><span class="n">7</span> Verificar e exportar</h2>
+    <div id="exp-plan" class="card plan"></div>
+    <label>Impressora (tamanho da mesa)<select id="printer"></select></label>
+    <div id="printer-custom" class="grid3 hidden">
+      <label>Mesa X (mm)<input id="pc-x" type="number" min="50" step="1"></label>
+      <label>Mesa Y (mm)<input id="pc-y" type="number" min="50" step="1"></label>
+      <label>Altura (mm)<input id="pc-z" type="number" min="50" step="1"></label>
+    </div>
+    <label class="inline">Folga das juntas (mm)<input id="clr" type="number" min="0.1" step="0.05" value="0.4"></label>
+    <div class="row">
+      <button id="btn-check-all" class="btn">Verificar juntas</button>
+      <button id="btn-export" class="btn primary">Exportar</button>
+    </div>
+    <div id="progress" class="info"></div>
+    <div id="dl-box" class="card hidden">
+      <div class="lbl3">Arquivos da exportação</div>
+      <div class="row">
+        <a id="btn-dl3mf" class="btn primary" href="/api/export.3mf">⬇ Baixar 3MF</a>
+        <a id="btn-dl" class="btn" href="/api/export.stl">⬇ STL montado</a>
+        <a id="btn-dlzip" class="btn" href="/api/export.zip">⬇ Tudo (.zip)</a>
+        <button id="btn-reveal" class="btn">Abrir pasta no Finder</button>
+      </div>
+      <p id="dl-hint" class="hint">O 3MF leva as peças e as cores; é o arquivo para o Bambu Studio e o OrcaSlicer. O STL não leva cores.</p>
+      <details class="adv" id="dl-files-det" open><summary>STLs separados e outros arquivos</summary>
+        <ul id="dl-files" class="files"></ul>
+      </details>
+    </div>
+    <div id="report"></div>
+    <details class="adv"><summary>Calibração da folga</summary>
+      <button id="btn-cupom" class="btn">Gerar cupom de calibração</button>
+      <p class="hint">Usa a peça de corte e a escala da junta selecionada, em 6 folgas. Imprima, veja qual gira sem grudar e digite essa folga acima.</p>
+    </details>
+  </section>
+</aside>
+</div>
+<div id="timeline" aria-label="Linha do tempo do projeto"></div>
+<script type="module" src="app.js?v=1.47"></script>
+<script type="module" src="split.js?v=1.47"></script>
+<script type="module" src="freecut.js?v=1.47"></script>
+<script type="module" src="areas.js?v=1.47"></script>
+<script type="module" src="pecas.js?v=1.47"></script>
+<script type="module" src="plano.js?v=1.47"></script>
+<script type="module" src="pecacorte.js?v=1.47"></script>
+<script type="module" src="conectores.js?v=1.47"></script>
+<script type="module" src="mcp.js?v=1.47"></script>
+<script type="module" src="help.js?v=1.47"></script>
+<script type="module" src="ui.js?v=1.47"></script>
+</body>
+</html>
