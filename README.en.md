@@ -21,8 +21,8 @@ For Mac and Windows · 100% on your computer · no account and no subscription.<
 <p align="center"><img src="docs/img/efc3d_corte.jpg" alt="EFC3D with a turtle cut into head and legs, each piece in a color, and the cut list with the light of each cut" width="860"></p>
 
 ## See it in 1 minute
-<p align="center"><a href="docs/video/efc3d_demo_en_16x9.mp4"><img src="docs/img/efc3d_demo_en.jpg" alt="EFC3D demo video in English: create a joint, see the colored parts and export to the printer bed" width="860"></a></p>
-<p align="center">Click the image to watch. Vertical version (Reels/Shorts): <a href="docs/video/efc3d_demo_en_9x16.mp4">efc3d_demo_en_9x16.mp4</a></p>
+<p align="center"><a href="docs/video/efc3d_demo_en_16x9.mp4?raw=true"><img src="docs/img/efc3d_demo_en.jpg" alt="EFC3D demo video in English: create a joint, see the colored parts and export to the printer bed" width="860"></a></p>
+<p align="center">Click the image to watch. Vertical version (Reels/Shorts): <a href="docs/video/efc3d_demo_en_9x16.mp4?raw=true">efc3d_demo_en_9x16.mp4</a></p>
 
 ## What it does
 - **Print-in-place joints:** click where the model should bend. The app fits the joint, checks strength, clearance and skin, and shows a light on each one.

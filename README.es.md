@@ -21,8 +21,8 @@ Para Mac y Windows · 100% en tu computadora · sin cuenta y sin suscripción.</
 <p align="center"><img src="docs/img/efc3d_corte.jpg" alt="EFC3D con una tortuga cortada en cabeza y patas, cada pieza de un color, y la lista de cortes con la luz de cada corte" width="860"></p>
 
 ## Míralo en 1 minuto
-<p align="center"><a href="docs/video/efc3d_demo_es_16x9.mp4"><img src="docs/img/efc3d_demo_es.jpg" alt="Video de demostración de EFC3D en español: crear una junta, ver las piezas de colores y exportar a la cama de la impresora" width="860"></a></p>
-<p align="center">Haz clic en la imagen para verlo. Versión vertical (Reels/Shorts): <a href="docs/video/efc3d_demo_es_9x16.mp4">efc3d_demo_es_9x16.mp4</a></p>
+<p align="center"><a href="docs/video/efc3d_demo_es_16x9.mp4?raw=true"><img src="docs/img/efc3d_demo_es.jpg" alt="Video de demostración de EFC3D en español: crear una junta, ver las piezas de colores y exportar a la cama de la impresora" width="860"></a></p>
+<p align="center">Haz clic en la imagen para verlo. Versión vertical (Reels/Shorts): <a href="docs/video/efc3d_demo_es_9x16.mp4?raw=true">efc3d_demo_es_9x16.mp4</a></p>
 
 ## Qué hace
 - **Juntas que se imprimen listas (print in place):** haz clic donde el modelo debe doblarse. La app ajusta la junta, revisa fuerza, holgura y piel, y muestra una luz en cada una.
