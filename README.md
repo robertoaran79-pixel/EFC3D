@@ -20,6 +20,10 @@ Para Mac e Windows · 100% no seu computador · sem conta e sem assinatura.</p>
 
 <p align="center"><img src="docs/img/efc3d_corte.jpg" alt="EFC3D com uma tartaruga cortada em cabeça e patas, cada peça numa cor, e a lista de cortes com o semáforo de cada um" width="860"></p>
 
+## Veja em 1 minuto
+<p align="center"><a href="docs/video/efc3d_demo_pt_16x9.mp4"><img src="docs/img/efc3d_demo_pt.jpg" alt="Vídeo de demonstração do EFC3D em português: criar uma junta, ver as peças coloridas e exportar para a mesa da impressora" width="860"></a></p>
+<p align="center">Clique na imagem para assistir. Versão vertical (Reels/Shorts): <a href="docs/video/efc3d_demo_pt_9x16.mp4">efc3d_demo_pt_9x16.mp4</a></p>
+
 ## O que ele faz
 - **Juntas que imprimem prontas (print in place):** clique onde o modelo deve dobrar. O app encaixa a junta, confere força, folga e pele e mostra um semáforo em cada uma.
 - **Corte livre pela pele:** desenhe uma linha no modelo e receba a peça. A forma de fora não muda, a peça sai na direção de encaixe que o app sugere e pode levar pino, soquete ou conector manual.

@@ -22,6 +22,7 @@ cp "$ORIG"/{LICENSE,CHANGELOG.md,LEIA-ME.md,install.sh,uninstall.sh,instalar_win
 cp "$ORIG"/windows/*.ps1 windows/
 cp "$ORIG/docs/logo.png" docs/
 cp "$ORIG"/docs/img/efc3d_*.jpg docs/img/ 2>/dev/null || true
+mkdir -p docs/video && cp "$ORIG"/docs/video/efc3d_demo_*.mp4 docs/video/
 cat > .gitignore <<'GI'
 __pycache__/
 *.pyc
