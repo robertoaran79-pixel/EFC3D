@@ -10,7 +10,7 @@
 //   <kbd>                                            tecla
 
 export const DOCS = {
-  versao: '1.50',
+  versao: '1.51',
   atualizado: '08/11/2026',
   grupos: ['Empezar', 'Paso a paso', 'Flujos de trabajo', 'Referencia'],
   topicos: [
@@ -361,6 +361,7 @@ export const DOCS = {
 </ul>
 <h3>Corte dentro de una pieza ya cortada</h3>
 <p>Se puede: un corte puede tomar una pieza que salió de otro corte (cortar la parte superior de la cabeza que ya salió del cuerpo, por ejemplo). El corte actúa en la pieza donde está la línea, y la app aplica primero el corte de la parte mayor (la cabeza) y después el corte que está dentro de él (la parte superior), en cualquier orden en que los hayas creado.</p>
+<p><b>Flexi que ya viene articulado.</b> En un modelo print in place (patas y juntas ya encajadas, separadas solo por la holgura), las partes que encajan entre sí siguen siendo una sola pieza después del corte: salen montadas, en la posición del modelo, e imprimen como están. La pieza del corte lleva solo lo que está del lado marcado de la línea.</p>
 <p><b>Cortes que dependen de otro.</b> Un corte hecho en la pieza de otro corte depende de él: el corte de origen siempre se ejecuta antes. Eliminar el corte de origen, o cambiar su marcado (líneas, área, lado), también elimina los cortes dibujados en su pieza y los que dependen de ellos. La app avisa antes con la lista ("Eliminar Corte 12 también elimina los cortes dibujados en su pieza: Corte 13, Corte 14") y <kbd>⌘Z</kbd> los recupera todos. Renombrar el corte de origen lleva el nombre nuevo a los dependientes. Si el corte de origen no sale, los dependientes no se ejecutan y el informe dice por qué.</p>
 <h3>Combinar tipos de corte (color, libre y plano)</h3>
 <p>El orden es siempre el mismo: primero <b>Separar por color</b>, después los <b>Cortes libres</b> y por último los <b>Cortes planos</b>. Cada corte actúa en la pieza donde está, y la app revisa cada resultado:</p>
@@ -679,6 +680,9 @@ export const DOCS = {
   ],
 
   novidades: [
+    { versao: '1.51', data: '08/11/2026', itens: [
+      'Flexi que ya viene articulado (print in place): después de un corte, las partes que encajan entre sí siguen siendo una sola pieza, montada y en la posición del modelo. Antes las patas y las juntas iban a la cama como piezas sueltas, o entraban en la pieza del corte.',
+    ] },
     { versao: '1.50', data: '08/11/2026', itens: [
       'Primera versión pública. La app pasa a llamarse EFC3D (Easy Flexy and Cuts 3D), para Mac y Windows, con instalador de un clic.',
       'Juntas: todas las piezas de corte son propias (RLA). Un proyecto antiguo que usaba una pieza de terceros se abre con la junta propia en el mismo lugar, la escala rehecha y un aviso para revisarla.',

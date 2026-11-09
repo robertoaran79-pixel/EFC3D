@@ -68,6 +68,14 @@ def rodar(pasta, rel=None):
             ruins.append((f, e))
     etapa('exportação das peças', ex.get('ok') and len(ex.get('stls', [])) >= 2 and not ruins,
           arquivos=ex.get('stls'), arquivo3mf=ex.get('arquivo3mf'), malha_ruim=ruins)
+    # flexi que já veio articulado: uma 'pata' solta a 0,4 mm do tronco (outra casca, como a junta de um
+    # print in place). Depois do corte no pescoço o corpo tem de continuar uma peça só, com as duas cascas
+    pata = mf.Manifold.sphere(7, 64).scale([1.0, 1.0, 0.8]).translate([0, -11.25 - 0.4 - 7, 15])   # tronco: raio 11,25 em y
+    S2 = E.read_stl(E.write_stl(tronco + pesc + cab + pata))
+    out2 = FC.apply(SPL.run(S2, np.ones(S2.num_tri(), np.uint8), []), [corte], S2)
+    corpos = [p for p in out2['pieces'] if p['tipo'] == 'corpo']
+    etapa('flexi existente: cascas juntas', len(corpos) == 1 and len(E.parts(corpos[0]['mesh'], 0.5)) == 2,
+          corpos=[(p['nome'], len(E.parts(p['mesh'], 0.5))) for p in corpos])
     jp = ED.suggest_at(S, 0.0, 0.0, 0.0, ED.PADRAO)       # junta sugerida pelo app no tronco, como na tela
     R = ED.export(S, E.write_stl(S), [jp], 0.4, os.path.join(pasta, 'juntas'), nome='autoteste')
     luz = [j.get('luz') for j in R.get('juntas', [])]

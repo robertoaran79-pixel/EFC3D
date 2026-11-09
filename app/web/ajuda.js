@@ -10,7 +10,7 @@
 //   <kbd>                                            tecla
 
 export const DOCS = {
-  versao: '1.50',
+  versao: '1.51',
   atualizado: '08/11/2026',
   grupos: ['Começar', 'Passo a passo', 'Fluxos de trabalho', 'Referência'],
   topicos: [
@@ -361,6 +361,7 @@ export const DOCS = {
 </ul>
 <h3>Corte dentro de uma peça já cortada</h3>
 <p>Pode: um corte pode pegar uma peça que saiu de outro corte (cortar o topo da cabeça que já saiu do corpo, por exemplo). O corte age na peça em que a linha está, e o app aplica primeiro o corte da parte maior (a cabeça) e depois o corte dentro dele (o topo), em qualquer ordem que você os tenha criado.</p>
+<p><b>Flexi que já veio articulado.</b> Num modelo print in place (patas e juntas já encaixadas, separadas só pela folga), as partes que se encaixam continuam uma peça só depois do corte: saem montadas, na posição do modelo, e imprimem como estão. A peça do corte leva só o que está do lado marcado da linha.</p>
 <p><b>Cortes que dependem de outro.</b> Um corte feito na peça de outro corte depende dele: o corte de origem roda sempre antes. Excluir o corte de origem, ou mudar a marcação dele (linhas, área, lado), exclui também os cortes desenhados na peça dele, e os netos. O app avisa antes com a lista ("Excluir o Corte 12 exclui também os cortes desenhados na peça dele: Corte 13, Corte 14") e <kbd>⌘Z</kbd> traz todos de volta. Renomear o corte de origem leva o nome novo aos dependentes. Se o corte de origem não sai, os dependentes não rodam e o relatório diz por quê.</p>
 <h3>Combinar tipos de corte (cor, livre e plano)</h3>
 <p>A ordem é sempre a mesma: primeiro <b>Separar por cor</b>, depois os <b>Cortes livres</b> e por último os <b>Cortes planos</b>. Cada corte age na peça em que está, e o app confere cada resultado:</p>
@@ -679,6 +680,9 @@ export const DOCS = {
   ],
 
   novidades: [
+    { versao: '1.51', data: '08/11/2026', itens: [
+      'Flexi que já veio articulado (print in place): depois de um corte, as partes que se encaixam continuam uma peça só, montada e na posição do modelo. Antes as patas e as juntas iam para a mesa como peças soltas, ou entravam na peça do corte.',
+    ] },
     { versao: '1.50', data: '08/11/2026', itens: [
       'Primeira versão pública. O app passa a se chamar EFC3D (Easy Flexy and Cuts 3D), para Mac e Windows, com instalador de um clique.',
       'Juntas: todas as peças de corte são próprias (RLA). Projeto antigo que usava peça de terceiros abre com a junta própria no mesmo lugar, a escala refeita e um aviso para conferir.',

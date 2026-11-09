@@ -10,7 +10,7 @@
 //   <kbd>                                            key
 
 export const DOCS = {
-  versao: '1.50',
+  versao: '1.51',
   atualizado: '08/11/2026',
   grupos: ['Getting started', 'Step by step', 'Workflows', 'Reference'],
   topicos: [
@@ -361,6 +361,7 @@ export const DOCS = {
 </ul>
 <h3>Cut inside a part that was already cut</h3>
 <p>Yes: a cut can take a part that came out of another cut (cutting the top of a head that already came off the body, for example). The cut acts on the part where the line is, and the app applies the cut of the larger part (the head) first and then the cut inside it (the top), in whatever order you created them.</p>
+<p><b>Flexi that is already articulated.</b> On a print in place model (legs and joints already interlocked, apart only by the clearance), the parts that fit into each other stay one piece after the cut: they come out assembled, in the model's position, and print as they are. The cut piece takes only what is on the marked side of the line.</p>
 <p><b>Cuts that depend on another cut.</b> A cut made on the piece of another cut depends on it: the source cut always runs first. Deleting the source cut, or changing its marking (lines, area, side), also deletes the cuts drawn on its piece, and their own dependents. The app warns first with the list ("Deleting Cut 12 also deletes the cuts drawn on its piece: Cut 13, Cut 14") and <kbd>⌘Z</kbd> brings them all back. Renaming the source cut carries the new name to the dependent cuts. If the source cut does not come out, the dependent cuts do not run and the report says why.</p>
 <h3>Combining cut types (color, free and plane)</h3>
 <p>The order is always the same: first <b>Split by color</b>, then the <b>Free cuts</b> and finally the <b>Plane cuts</b>. Each cut acts on the part it is in, and the app checks each result:</p>
@@ -679,6 +680,9 @@ export const DOCS = {
   ],
 
   novidades: [
+    { versao: '1.51', data: '08/11/2026', itens: [
+      'Flexi that is already articulated (print in place): after a cut, the parts that fit into each other stay one piece, assembled and in the model\'s position. Before, the legs and joints went to the bed as loose parts, or ended up in the cut piece.',
+    ] },
     { versao: '1.50', data: '08/11/2026', itens: [
       'First public version. The app is now called EFC3D (Easy Flexy and Cuts 3D), for Mac and Windows, with a one-click installer.',
       'Joints: every cut piece is our own (RLA). An old project that used a third-party piece opens with the own joint in the same place, the scale redone and a warning to check it.',

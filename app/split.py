@@ -1555,6 +1555,10 @@ def run(S, paint, configs, progress=None):
                 cross = (sd.min(1) <= 0.01 + tol) & (sd.max(1) >= -0.01 - tol)
                 d = np.where(cross, 0.0, np.minimum(d, np.abs(sd).min(1)))   # on a cutting plane
         keep['longe_mm'] = round(float(d.max()), 2) if len(d) else 0.0
+    if sum(1 for p in pieces if p.get('tipo') == 'corpo') > 1:
+        # flexi que já veio articulado: as cascas que se encaixam continuam uma peça só (freecut._reagrupar_cascas)
+        import freecut as _FC
+        pieces = _FC._reagrupar_cascas(dict(pieces=pieces), S)['pieces']
     return dict(R=R, pieces=pieces, results=results, mesh=keep, segundos=round(time.time() - t0, 1), zones=zones)
 
 
@@ -2210,7 +2214,7 @@ def _orient_all(pieces):
         if p['tipo'] == 'cavilha':
             continue
         try:
-            if p is anchor or p.get('flexi'):
+            if p is anchor or p.get('flexi') or p.get('conjunto'):   # flexi articulado: imprime como no modelo
                 e = OR.evaluate(p['T'], np.eye(4) if p.get('print_T') is None else p['print_T'])
                 mudou = False
             else:
@@ -2220,7 +2224,7 @@ def _orient_all(pieces):
         except Exception:
             continue
         rep.append(dict(nome=p['nome'], suporte_cm2=round(e['suporte'] / 100.0, 1), contato_cm2=round(e['contato'] / 100.0, 1),
-                        altura=round(e['altura'], 1), brim=bool(OR.brim(e)), mudou=bool(mudou), fixa=p is anchor or bool(p.get('flexi'))))
+                        altura=round(e['altura'], 1), brim=bool(OR.brim(e)), mudou=bool(mudou), fixa=p is anchor or bool(p.get('flexi')) or bool(p.get('conjunto'))))
     return rep
 
 

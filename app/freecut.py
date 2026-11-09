@@ -4642,6 +4642,133 @@ def _base_check(o):
     return o
 
 
+# ---------------------------------------------------------------- flexi que já veio articulado
+# Um flexi pronto (print in place) chega com várias cascas soltas que se encaixam, separadas só pela
+# folga da junta. Depois de um corte, cada parte do corpo virava uma peça própria e a exportação as
+# espalhava na mesa (e girava cada uma), desmontando as juntas. Aqui as partes que já eram cascas
+# diferentes no modelo original e ficam a menos de GAP_CASCAS mm uma da outra voltam a ser uma peça só,
+# na posição do modelo. Partes da mesma casca separadas pelo corte continuam separadas.
+GAP_CASCAS = 1.5
+
+
+def _cascas_idx(S):
+    """Índice das cascas do modelo original (árvore dos vértices e o número da casca de cada um)."""
+    from scipy.spatial import cKDTree
+    shells = E.parts(S, 0.5)
+    if len(shells) <= 1:
+        return None
+    pts, lab = [], []
+    for k, sh in enumerate(shells):
+        v = E.mesh_arrays(sh)[0]
+        pts.append(v); lab.append(np.full(len(v), k))
+    return cKDTree(np.vstack(pts)), np.concatenate(lab)
+
+
+def _casca_de(m, idx):
+    """Casca do modelo original de onde a malha veio (a maioria dos vértices que estão na pele original)."""
+    tree, lab = idx
+    v = E.mesh_arrays(m)[0]
+    if len(v) > 4000:
+        v = v[np.linspace(0, len(v) - 1, 4000).astype(int)]
+    d, i = tree.query(v)
+    na = d < 0.05
+    ls = lab[i[na]] if na.any() else lab[i[[int(np.argmin(d))]]]
+    return int(np.bincount(ls).argmax())
+
+
+def _encostam(a, b, gap):
+    from scipy.spatial import cKDTree
+    ba, bb = np.array(a.bounding_box()), np.array(b.bounding_box())
+    if np.any(ba[:3] - gap > bb[3:]) or np.any(bb[:3] - gap > ba[3:]):
+        return False
+    va, vb = E.mesh_arrays(a)[0], E.mesh_arrays(b)[0]
+    d, _ = cKDTree(vb).query(va, distance_upper_bound=gap)
+    return bool(np.isfinite(d).any())
+
+
+def _reagrupar_cascas(o, S, cuts=None):
+    """Junta de volta as partes do corpo (e as partes 'soltas' de um corte) que eram cascas diferentes
+    no modelo e se encaixam: as juntas de um flexi que já veio articulado ficam montadas."""
+    try:
+        idx = _cascas_idx(S)
+    except Exception:
+        traceback.print_exc()
+        return o
+    if idx is None:
+        return o
+    pcs = list(o['pieces'])
+    # casca inteira que o corte nem tocou (longe da linha) não é peça do corte: volta para o corpo. Sem
+    # isso, num flexi a pata solta podia sair como "Corte 1 (2)" de um corte no pescoço
+    if cuts:
+        from scipy.spatial import cKDTree
+        for k, p in enumerate(pcs):
+            i = p.get('livre')
+            if p.get('tipo') == 'corpo' or i is None or not (0 <= i < len(cuts)):
+                continue
+            Ls = _loops_of(cuts[i])
+            if not Ls or cuts[i].get('mascara'):           # área marcada: a peça pode ir além da linha
+                continue
+            v = E.mesh_arrays(p['mesh'])[0]
+            d, _ = cKDTree(np.vstack(Ls)).query(v)
+            if float(d.min()) > 2.0:
+                pcs[k] = dict(p, tipo='corpo', nome='Corpo', livre=None)
+    corpos = [k for k, p in enumerate(pcs) if p.get('tipo') == 'corpo']
+    nomes = {p.get('nome'): k for k, p in enumerate(pcs)}
+    soltas = [(k, nomes.get(p['nome'][:-len(' (solta)')])) for k, p in enumerate(pcs)
+              if str(p.get('nome', '')).endswith(' (solta)')]
+    soltas = [(k, m) for k, m in soltas if m is not None]
+    if len(corpos) < 2 and not soltas:
+        return o
+    lab = {}
+    def casca(k):
+        if k not in lab:
+            lab[k] = _casca_de(pcs[k]['mesh'], idx)
+        return lab[k]
+    pai = list(range(len(pcs)))
+    def raiz(k):
+        while pai[k] != k:
+            pai[k] = pai[pai[k]]; k = pai[k]
+        return k
+    for a_ in range(len(corpos)):
+        for b_ in range(a_ + 1, len(corpos)):
+            i, j = corpos[a_], corpos[b_]
+            if raiz(i) != raiz(j) and casca(i) != casca(j) and _encostam(pcs[i]['mesh'], pcs[j]['mesh'], GAP_CASCAS):
+                pai[raiz(j)] = raiz(i)
+    for k, m in soltas:
+        if raiz(k) != raiz(m) and casca(k) != casca(m) and _encostam(pcs[k]['mesh'], pcs[m]['mesh'], GAP_CASCAS):
+            pai[raiz(k)] = raiz(m)
+    grupos = {}
+    for k in range(len(pcs)):
+        grupos.setdefault(raiz(k), []).append(k)
+    if all(len(g) == 1 for g in grupos.values()) and pcs == list(o['pieces']):
+        return o
+    novo, feito = [], set()
+    for k, p in enumerate(pcs):
+        r = raiz(k)
+        if r in feito:
+            continue
+        feito.add(r)
+        g = grupos[r]
+        if len(g) == 1:
+            novo.append(p); continue
+        base = max(g, key=lambda q: _vol(pcs[q]['mesh']))
+        mesh = E.flat(E.union([pcs[q]['mesh'] for q in g]))
+        Ts = [np.asarray(pcs[q]['T']) for q in g if pcs[q].get('T') is not None]
+        Ps = [pcs[q].get('paint') for q in g]
+        tri = np.concatenate(Ts) if len(Ts) == len(g) else tri_array(mesh)
+        tinta = (np.concatenate([np.asarray(x) for x in Ps]) if all(x is not None for x in Ps) and len(Ts) == len(g) else None)
+        q_ = dict(pcs[base], mesh=mesh, T=tri, paint=tinta, conjunto=True)
+        if not any('paint' in pcs[q] for q in g):
+            q_.pop('paint')
+        novo.append(q_)
+    # os nomes do corpo voltam a ser seguidos (Corpo, Corpo 2, ...)
+    cs = [p for p in novo if p.get('tipo') == 'corpo']
+    raiz_nome = re.sub(r' \d+$', '', cs[0]['nome']) if cs else 'Corpo'
+    for n, p in enumerate(cs):
+        p['nome'] = raiz_nome + (f' {n + 1}' if len(cs) > 1 else '')
+    return dict(o, pieces=novo)
+
+
 def apply(out, cuts, S, progress=None, snap_key=None):
     """Aplica os cortes livres e os planos. Num modelo muito maior que o de referência, corta numa
     cópia em escala e devolve no tamanho real (o mesmo resultado em qualquer tamanho).
@@ -4649,7 +4776,7 @@ def apply(out, cuts, S, progress=None, snap_key=None):
     desenhar e marcar sobre exatamente a malha que o corte vai usar (host_piece)."""
     _SNAP_CTX[0] = (snap_key, cuts_sigs(cuts), list(cuts)) if snap_key is not None else None
     try:
-        return _base_check(_clean_pieces(_apply_scaled(out, cuts, S, progress), out['pieces']))
+        return _base_check(_reagrupar_cascas(_clean_pieces(_apply_scaled(out, cuts, S, progress), out['pieces']), S, cuts))
     finally:
         _SNAP_CTX[0] = None
 

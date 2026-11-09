@@ -3,6 +3,9 @@
 O histórico público começa na 1.50, a primeira versão aberta. Cada versão tem os pacotes de instalação em
 [Versões](../../releases).
 
+## 1.51 · 08/11/2026
+- Flexi que já veio articulado (print in place): depois de um corte, as partes que se encaixam continuam uma peça só, montada e na posição do modelo. Antes as patas e as juntas iam para a mesa como peças soltas, ou entravam na peça do corte.
+
 ## 1.50 · 08/11/2026
 Primeira versão pública.
 - O app passa a se chamar **EFC3D (Easy Flexy and Cuts 3D)**, para Mac e Windows, com instalador de um clique (.dmg no Mac, .exe no Windows).
