@@ -48,6 +48,17 @@ Todos están en [Versiones](../../releases). El historial de cambios está en el
 - **Windows:** si SmartScreen avisa, haz clic en **Más información › Ejecutar de todas formas**.
 - **Juntas en partes muy finas** (patas de modelos pequeños) pueden quedar en rojo: agranda el modelo, usa el Arco Bajo o importa una pieza de corte que tengas derecho a usar.
 
+## Requisitos
+| | Mínimo | Recomendado |
+|---|---|---|
+| Procesador | 4 núcleos, 64 bits (Intel Core i5 de 8.ª generación, AMD Ryzen 3000, Mac Intel de 2017, cualquier Apple Silicon) | 6 núcleos o más, o Apple Silicon |
+| Memoria | 8 GB | 16 GB |
+| Tarjeta de video | aceleración 3D activada y controlador actualizado; la integrada sirve (Intel UHD 620, Iris Xe, AMD Radeon Vega) | integrada reciente o dedicada (NVIDIA o AMD) |
+| Pantalla | 1366 × 768 | 1920 × 1080 |
+
+El acceso remoto (Escritorio remoto, AnyDesk) y las máquinas virtuales casi siempre dibujan el 3D sin la tarjeta de
+video y van lentos. La app muestra **⚠ 3D sin tarjeta de video** y la ayuda (Rendimiento y requisitos) dice qué hacer.
+
 ## Apoya EFC3D
 EFC3D es gratuito para uso personal y sin fines comerciales, hecho por una sola persona en su tiempo libre. Si te ahorró tiempo o te dio un flexi bonito, considera [patrocinarlo en GitHub Sponsors](https://github.com/sponsors/robertoaran79-pixel). Cualquier monto ayuda, mensual o una sola vez, y el 100% va al desarrollador (GitHub no cobra comisión por patrocinios desde cuentas personales).
 

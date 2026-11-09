@@ -157,6 +157,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete ci-teste --yes --cleanup-tag -R ${{ github.repository }} || true
-          for b in ci teste-ci publicar ci-registro-mac-apple-silicon ci-registro-mac-intel ci-registro-windows; do
+          for b in ci teste-ci publicar perf-teste ci-registro-mac-apple-silicon ci-registro-mac-intel ci-registro-windows; do
             git push origin --delete "$b" || true
           done

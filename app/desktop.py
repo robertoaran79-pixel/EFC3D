@@ -190,6 +190,12 @@ def main():
         server = ThreadingHTTPServer(('127.0.0.1', port), SV.Handler)
         SV.BR.announce(port, SV.VERSION)
         threading.Thread(target=server.serve_forever, daemon=True).start()
+    if sys.platform == 'win32':
+        # WebView2: usar a placa de vídeo dedicada nos notebooks com duas e não cair no desenho por software só porque
+        # o driver está na lista de bloqueio do navegador (o Bambu Studio usa a mesma placa sem problema). A variável
+        # substitui os argumentos do pywebview, então o que ele passa vai junto. Quem já definiu a variável manda.
+        os.environ.setdefault('WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS',
+                              '--disable-features=ElasticOverscroll --force_high_performance_gpu --ignore-gpu-blocklist')
     try:
         import webview
     except Exception:

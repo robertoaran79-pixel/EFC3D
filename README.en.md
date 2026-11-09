@@ -48,6 +48,17 @@ All of them are in [Releases](../../releases). The change history is in the [CHA
 - **Windows:** if SmartScreen warns you, click **More info › Run anyway**.
 - **Joints on very thin parts** (legs of small models) may turn red: scale the model up, use the Low Arch or import a cut piece you have the right to use.
 
+## Requirements
+| | Minimum | Recommended |
+|---|---|---|
+| Processor | 4 cores, 64-bit (8th gen Intel Core i5, AMD Ryzen 3000, 2017 Intel Mac, any Apple Silicon) | 6 cores or more, or Apple Silicon |
+| Memory | 8 GB | 16 GB |
+| Graphics | 3D acceleration on and an up-to-date driver; integrated graphics are fine (Intel UHD 620, Iris Xe, AMD Radeon Vega) | recent integrated or dedicated (NVIDIA or AMD) |
+| Screen | 1366 × 768 | 1920 × 1080 |
+
+Remote access (Remote Desktop, AnyDesk) and virtual machines almost always draw the 3D without the graphics card and
+run slowly. The app shows **⚠ 3D without graphics card** and the help (Performance and requirements) explains what to do.
+
 ## Support EFC3D
 EFC3D is free for personal and noncommercial use, built by one person in their spare time. If it saved you time or gave you a nice flexi, please consider [sponsoring it on GitHub Sponsors](https://github.com/sponsors/robertoaran79-pixel). Any amount helps, monthly or one time, and 100% goes to the developer (GitHub charges no fee for sponsorships from personal accounts).
 

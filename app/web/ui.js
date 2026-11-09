@@ -428,10 +428,15 @@ for (const x of [-1, 1]) for (const y of [-1, 1]) for (const z of [-1, 1]) {
   corners.push({ p: [x, y, z], el: d });
 }
 const mInv = new THREE.Matrix4();
+let cubeSig = '';
 function cubeFrame() {
+  requestAnimationFrame(cubeFrame);
   camera.updateMatrixWorld();
   mInv.copy(camera.matrixWorldInverse);
   const e = mInv.elements;                                // coluna a coluna
+  const sg = e.slice(0, 11).map((v) => v.toFixed(4)).join() + corners.length;
+  if (sg === cubeSig) return;                             // câmera parada: nada a mexer no cubo
+  cubeSig = sg;
   const R = [[e[0], e[4], e[8]], [e[1], e[5], e[9]], [e[2], e[6], e[10]]];
   const toCss = (v) => [R[0][0] * v[0] + R[0][1] * v[1] + R[0][2] * v[2], -(R[1][0] * v[0] + R[1][1] * v[1] + R[1][2] * v[2]), R[2][0] * v[0] + R[2][1] * v[1] + R[2][2] * v[2]];
   const h = VC / 2;
@@ -447,7 +452,6 @@ function cubeFrame() {
     c.el.style.transform = `translate(${v[0]}px, ${v[1]}px)`;
     c.el.classList.toggle('hidden', v[2] < h * 0.25);
   }
-  requestAnimationFrame(cubeFrame);
 }
 requestAnimationFrame(cubeFrame);
 

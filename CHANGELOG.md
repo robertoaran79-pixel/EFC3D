@@ -3,6 +3,12 @@
 O histórico público começa na 1.50, a primeira versão aberta. Cada versão tem os pacotes de instalação em
 [Versões](../../releases).
 
+## 1.52 · 08/11/2026
+- Windows e máquinas sem placa de vídeo bem mais fluidos: o pincel e a caneta não recompilam mais os gráficos a cada traço, girar o modelo ficou até 3 vezes mais rápido e a vista parada não redesenha à toa.
+- Clique, caneta e pincel acham o ponto do modelo na hora, mesmo em modelos de mais de 100 mil triângulos.
+- Quando o 3D é desenhado sem a placa de vídeo, a vista se ajusta sozinha para continuar fluida e mostra o aviso ⚠ 3D sem placa de vídeo, com o que fazer. No Windows o app pede a placa de alto desempenho.
+- Requisitos mínimos e recomendados no README e na ajuda (Desempenho e requisitos).
+
 ## 1.51 · 08/11/2026
 - Flexi que já veio articulado (print in place): depois de um corte, as partes que se encaixam continuam uma peça só, montada e na posição do modelo. Antes as patas e as juntas iam para a mesa como peças soltas, ou entravam na peça do corte.
 

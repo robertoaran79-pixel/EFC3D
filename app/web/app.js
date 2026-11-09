@@ -9,6 +9,13 @@ import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { initPrompts } from './prompts.js?v=1.0';
+import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from './vendor/bvh/three-mesh-bvh.module.js';
+// Clique, caneta e pincel acham o ponto do modelo por uma árvore de caixas (BVH) em vez de testar os 130 mil
+// triângulos a cada movimento. "indirect" mantém a ordem dos triângulos: faceIndex continua o mesmo de antes.
+THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
+THREE.BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
+THREE.Mesh.prototype.raycast = acceleratedRaycast;
+const comBVH = (g) => { try { g.computeBoundsTree({ indirect: true }); } catch (e) { /* sem a árvore o teste é o comum */ } return g; };
 
 const $ = (s) => document.querySelector(s);
 const statusEl = $('#status');
@@ -17,8 +24,23 @@ const nf = (v, d = 2) => (+v).toFixed(d).replace('.', ',');
 
 // ---------------------------------------------------------------- scene
 const host = $('#canvas');
-const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-renderer.setPixelRatio(window.devicePixelRatio);
+// Placa de vídeo: sem ela (driver ausente, área de trabalho remota, máquina virtual, WebView2 que recusou a GPU) o
+// navegador desenha o 3D no processador e tudo fica lento. Nesse caso o app desenha mais leve e avisa.
+const GPU = (() => {
+  let nome = '';
+  try {
+    const g = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
+    const e = g && g.getExtension('WEBGL_debug_renderer_info');
+    nome = g ? String(e ? g.getParameter(e.UNMASKED_RENDERER_WEBGL) : g.getParameter(g.RENDERER)) : '';
+    const lose = g && g.getExtension('WEBGL_lose_context'); if (lose) lose.loseContext();
+  } catch (err) { /* sem WebGL */ }
+  return { nome, soft: /swiftshader|basic render|llvmpipe|softpipe|software|warp/i.test(nome) };
+})();
+const renderer = new THREE.WebGLRenderer({ antialias: !GPU.soft, powerPreference: 'high-performance' });
+renderer.debug.checkShaderErrors = false;   // a checagem trava o desenho a cada shader novo (no Windows, muito)
+const DPR = () => Math.min(window.devicePixelRatio || 1, GPU.soft ? 1 : 2);
+renderer.setPixelRatio(DPR());
+const VIEW = { dirty: true, ativo: 0, escala: 1, medio: 16, ultimo: 0, desenhado: 0, sig: '', nitido: true };
 renderer.localClippingEnabled = true;
 host.appendChild(renderer.domElement);
 const labelR = new CSS2DRenderer();
@@ -26,6 +48,14 @@ labelR.domElement.style.position = 'absolute';
 labelR.domElement.style.top = '0';
 labelR.domElement.style.pointerEvents = 'none';
 host.appendChild(labelR.domElement);
+if (GPU.soft) {                          // aviso fixo no canto da vista: ícone e texto, não só cor
+  const av = document.createElement('button');
+  av.id = 'gpu-aviso'; av.className = 'gpu-aviso';
+  av.textContent = '⚠ 3D sem placa de vídeo';
+  av.title = 'O 3D está sendo desenhado pelo processador, por isso girar e pintar ficam lentos. Clique para ver como resolver.';
+  av.onclick = () => { if (window.flexiHelp) window.flexiHelp.open('desempenho'); };
+  host.appendChild(av);
+}
 
 const scene = new THREE.Scene();
 const sysDark = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
@@ -44,7 +74,7 @@ scene.add(sun);
 let grid = null;
 function makeGrid() {
   const vis = grid ? grid.visible : true;
-  if (grid) { scene.remove(grid); grid.geometry.dispose(); grid.material.dispose(); }
+  if (grid) { scene.remove(grid); grid.geometry.dispose(); }
   const d = isDark();
   grid = new THREE.GridHelper(300, 30, d ? 0x3a3f45 : 0xb8b2a6, d ? 0x26292d : 0xd6d1c7);
   grid.rotation.x = Math.PI / 2;
@@ -65,6 +95,7 @@ for (const grp of [gizmo._gizmo.picker.rotate, gizmo._gizmo.gizmo.rotate]) {
 
 function resize() {
   const w = host.clientWidth, h = host.clientHeight;
+  renderer.setPixelRatio(DPR() * VIEW.escala); VIEW.dirty = true;
   renderer.setSize(w, h);
   labelR.setSize(w, h);
   camera.aspect = w / Math.max(h, 1);
@@ -72,7 +103,32 @@ function resize() {
 }
 window.addEventListener('resize', resize);
 resize();
-(function loop() { requestAnimationFrame(loop); controls.update(); renderer.render(scene, camera); labelR.render(scene, camera); })();
+// Desenho sob demanda e resolução que se adapta: parado, a cena só é redesenhada quando algo muda (e de tempos em
+// tempos, para pegar o que chega do motor); navegando ou pintando, se o quadro passar de ~40 ms a resolução cai
+// aos poucos até ficar fluido, e volta à nitidez total assim que o mouse para.
+const redraw = () => { VIEW.dirty = true; };
+['pointerdown', 'pointermove', 'wheel', 'keydown'].forEach((ev) => window.addEventListener(ev, () => { VIEW.ativo = performance.now(); }, { capture: true, passive: true }));
+function setEscala(k) {
+  const r = DPR() * k;
+  if (Math.abs(renderer.getPixelRatio() - r) > 1e-3) { renderer.setPixelRatio(r); renderer.setSize(host.clientWidth, host.clientHeight); }
+}
+(function loop(t) {
+  requestAnimationFrame(loop);
+  const mudouCam = controls.update();
+  const cp = camera.position, cq = camera.quaternion, sig = `${cp.x.toFixed(3)},${cp.y.toFixed(3)},${cp.z.toFixed(3)},${cq.x.toFixed(5)},${cq.y.toFixed(5)},${cq.z.toFixed(5)},${cq.w.toFixed(5)},${camera.zoom},${camera.fov},${camera.aspect}`;
+  const camMoveu = mudouCam || sig !== VIEW.sig; VIEW.sig = sig;
+  const agora = t || performance.now(), mexendo = agora - VIEW.ativo < 600 || camMoveu;
+  if (mexendo) {
+    if (VIEW.ultimo) VIEW.medio = VIEW.medio * 0.8 + Math.min(agora - VIEW.ultimo, 500) * 0.2;
+    if (VIEW.medio > 40 && VIEW.escala > 0.5) VIEW.escala = Math.max(0.5, VIEW.escala * 0.85);
+    else if (VIEW.medio < 22 && VIEW.escala < 1) VIEW.escala = Math.min(1, VIEW.escala * 1.05);
+    setEscala(VIEW.escala); VIEW.nitido = VIEW.escala >= 1;
+  } else if (!VIEW.nitido) { setEscala(1); VIEW.nitido = true; VIEW.dirty = true; }
+  VIEW.ultimo = mexendo ? agora : 0;
+  if (!(mexendo || VIEW.dirty || agora - VIEW.desenhado > 250)) return;
+  VIEW.dirty = false; VIEW.desenhado = agora;
+  renderer.render(scene, camera); labelR.render(scene, camera);
+})();
 
 // ---------------------------------------------------------------- state
 const S = {
@@ -166,6 +222,7 @@ async function showBase(fit = true) {
   g.computeVertexNormals();
   if (S.base) { setBaseHidden(null); scene.remove(S.base); S.base.geometry.dispose(); }
   g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 3), 3));
+  comBVH(g);
   S.base = new THREE.Mesh(g, solidMat({ transparent: true, opacity: 1 }));
   scene.add(S.base);
   baseTriData(g);
@@ -2323,7 +2380,10 @@ function penSegments(seg, color, r) {
   m.userData.pen = { kind: 'seg', seg: Float32Array.from(seg), color, r, fixedR };
   return m;
 }
-function disposeTree(o) { o.traverse((x) => { if (x.geometry) x.geometry.dispose(); if (x.material) x.material.dispose(); }); }
+// Só a geometria é liberada: liberar o material apaga o shader quando ninguém mais usa, e o próximo desenho igual
+// compila tudo de novo (no Windows cada compilação leva dezenas de ms, e a pincelada travava). Material sem uso é
+// recolhido sozinho pelo navegador; textura, se houver, sai junto.
+function disposeTree(o) { o.traverse((x) => { if (x.geometry) x.geometry.dispose(); const ms = Array.isArray(x.material) ? x.material : x.material ? [x.material] : []; ms.forEach((mt) => { if (mt.map) mt.map.dispose(); }); }); }
 // borracha: tira as linhas fechadas que ela toca (a pintura apagada fica no ⌘Z da pintura)
 function eraseContours(p) {
   if (!vgraph || (!CT.loops.length && !CT.pts.length)) return;
@@ -2486,5 +2546,5 @@ renderPalette();
 })();
 
 // test / automation hook
-window.flexi = { closingPath, penWidth, setPenKind, penLine, penSegments, disposeTree, ctDebug: () => ({ pts: CT.pts.length, loops: CT.loops.length, mode: CT.mode, loopLens: CT.loops.map((l) => l.length) }), scene, host, renderer, controls, loader, api, post, setStatus, nf, ndc, solidMat, hexRGB, unb64, syncPaintNow, reveal, clearGroup, CSS2DObject, THREE,
+window.flexi = { GPU, VIEW, redraw, comBVH, closingPath, penWidth, setPenKind, penLine, penSegments, disposeTree, ctDebug: () => ({ pts: CT.pts.length, loops: CT.loops.length, mode: CT.mode, loopLens: CT.loops.map((l) => l.length) }), scene, host, renderer, controls, loader, api, post, setStatus, nf, ndc, solidMat, hexRGB, unb64, syncPaintNow, reveal, clearGroup, CSS2DObject, THREE,
   S, camera, gizmo, handlesGroup: handles, setPainting, setTool, bucket, saveProject, baseColorize, syncPaint, pushPaintUndo: () => pushUndo(), tri: () => tri, setBaseHidden, ensureVGraph, surfacePath, nearestCorner, screenOf, hitBase, adjacency: () => { ensureAdjacency(); return adj; }, pick: (cx, cy) => { ray.setFromCamera(ndc({ clientX: cx, clientY: cy }), camera); return ray.intersectObjects(S.jointGroup.children, true).map((h) => [h.object.type, !!h.object.userData.cutter, +h.distance.toFixed(1)]); }, addAt, verify, select, renderJoints, loadFile, fitCamera, setView, doExport, openProjectFile, openPath, showRecent, cleanJoint, act };

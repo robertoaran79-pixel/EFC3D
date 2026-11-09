@@ -6,6 +6,7 @@ código aberto de terceiros, cada uma com a própria licença, que continua vale
 | Biblioteca | Uso no EFC3D | Licença |
 |---|---|---|
 | three.js (r169) | vista 3D da janela (`app/web/vendor`) | MIT, Copyright 2010-2024 Three.js Authors |
+| three-mesh-bvh (0.8.3) | busca rápida do ponto do modelo sob o mouse (`app/web/vendor/bvh`) | MIT, Copyright 2018 Garrett Johnson |
 | Manifold (manifold3d) | sólidos e booleanas | Apache 2.0 |
 | NumPy | cálculo | BSD 3-Clause |
 | SciPy | cálculo e grafos | BSD 3-Clause |

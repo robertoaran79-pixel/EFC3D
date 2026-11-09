@@ -308,6 +308,7 @@ async function enterPiece(c, k) {
   if (!geo.attributes.normal) geo.computeVertexNormals();
   const col = new Float32Array(geo.attributes.position.count * 3).fill(0.82);
   geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  if (F.comBVH) F.comBVH(geo);
   pieceMesh = new THREE.Mesh(geo, solidMat({}));
   scene.add(pieceMesh);
   basePrevVis = S.base.visible;

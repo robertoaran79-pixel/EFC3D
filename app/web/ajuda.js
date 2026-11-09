@@ -10,7 +10,7 @@
 //   <kbd>                                            tecla
 
 export const DOCS = {
-  versao: '1.51',
+  versao: '1.52',
   atualizado: '08/11/2026',
   grupos: ['Começar', 'Passo a passo', 'Fluxos de trabalho', 'Referência'],
   topicos: [
@@ -637,6 +637,29 @@ export const DOCS = {
 </ul>`,
     },
     {
+      id: 'desempenho', grupo: 'Referência', titulo: 'Desempenho e requisitos', icone: '⚡',
+      html: `
+<p>O EFC3D desenha o 3D pela placa de vídeo (WebGL). Quando o sistema não entrega a placa para o app, o desenho cai no processador: girar o modelo, a caneta e o pincel ficam lentos. Nesse caso aparece no canto da vista o aviso <b>⚠ 3D sem placa de vídeo</b>.</p>
+<h3>Requisitos</h3>
+<table class="t">
+  <tr><th></th><th>Mínimo</th><th>Recomendado</th></tr>
+  <tr><td>Sistema</td><td>Windows 10 ou 11 (64 bits) com WebView2; macOS 11</td><td>Windows 11; macOS 13 ou mais novo</td></tr>
+  <tr><td>Processador</td><td>4 núcleos, 64 bits (Intel Core i5 de 8ª geração, AMD Ryzen 3000, Mac Intel de 2017, qualquer Apple Silicon)</td><td>6 núcleos ou mais, ou Apple Silicon</td></tr>
+  <tr><td>Memória</td><td>8 GB</td><td>16 GB</td></tr>
+  <tr><td>Placa de vídeo</td><td>Aceleração 3D ligada e driver atualizado; a integrada serve (Intel UHD 620, Iris Xe, AMD Radeon Vega)</td><td>Integrada recente ou dedicada (NVIDIA ou AMD)</td></tr>
+  <tr><td>Tela</td><td>1366 × 768</td><td>1920 × 1080</td></tr>
+</table>
+<p>Medido: um modelo de 130 mil triângulos com 5 cortes usa cerca de 0,5 GB no motor durante a exportação. Modelos maiores pedem mais memória e mais tempo de corte.</p>
+<h3>Se aparecer "3D sem placa de vídeo" ou a vista estiver lenta</h3>
+<ul>
+  <li><b>Acesso remoto ou máquina virtual</b> (Área de Trabalho Remota, AnyDesk, Parallels, VirtualBox): quase sempre desenham sem a placa. Use o app direto no computador.</li>
+  <li><b>Driver de vídeo:</b> atualize pelo site da Intel, AMD ou NVIDIA. No Windows, "Adaptador de Vídeo Básico da Microsoft" no Gerenciador de Dispositivos quer dizer que falta o driver.</li>
+  <li><b>Notebook com duas placas (Windows):</b> Configurações › Sistema › Tela › Elementos gráficos › EFC3D › Alto desempenho. O app já pede a placa de alto desempenho ao WebView2.</li>
+  <li><b>Modo de economia de energia</b> ligado na bateria deixa a placa e o processador lentos: ligue na tomada ou escolha Melhor desempenho.</li>
+</ul>
+<p>Mesmo sem a placa, o app desenha mais leve: parado, a cena não é redesenhada à toa; girando ou pintando, a resolução da vista cai até ficar fluida e volta à nitidez total quando o mouse para. A placa em uso aparece em <a data-go="sobre">Sobre e manutenção</a>.</p>`,
+    },
+    {
       id: 'problemas', grupo: 'Referência', titulo: 'Solução de problemas', icone: '🩺',
       html: `
 <details><summary>O modelo não abre ou dá erro de malha</summary><p>O reparo automático conserta defeitos pequenos. Se ainda falhar, o arquivo tem defeitos grandes: exporte de novo do gerador em STL ou GLB, ou repare no Bambu Studio (Corrigir modelo) e abra de novo.</p></details>
@@ -662,15 +685,17 @@ export const DOCS = {
 <ul>
   <li>Roda localmente: o servidor do app fica no seu computador e nada é enviado para a internet.</li>
   <li>Sistema em uso agora: <b class="hl-sys"></b>.</li>
+  <li>Placa de vídeo em uso: <b class="hl-gpu"></b> (requisitos em <a data-go="desempenho">Desempenho e requisitos</a>).</li>
 </ul>
 <h3>Versões disponíveis</h3>
 <table class="t">
   <tr><th>Sistema</th><th>Versão</th><th>Instalar ou atualizar</th><th>Desinstalar</th></tr>
-  <tr><td>🍎 macOS 11 ou mais novo (Apple Silicon ou Intel)</td><td>1.5</td><td><code>bash install.sh</code> no Terminal</td><td><code>bash uninstall.sh</code></td></tr>
-  <tr><td>🪟 Windows 10 ou 11 (64 bits)</td><td>1.5</td><td>clique duas vezes em <code>instalar_windows.bat</code></td><td>menu Iniciar › Desinstalar EFC3D</td></tr>
+  <tr><td>🍎 macOS 11 ou mais novo (Apple Silicon ou Intel)</td><td class="hl-appver"></td><td>abra o <code>.dmg</code> e arraste o EFC3D para Aplicativos</td><td>arraste o EFC3D para o Lixo</td></tr>
+  <tr><td>🪟 Windows 10 ou 11 (64 bits)</td><td class="hl-appver"></td><td>rode o <code>EFC3D-…-windows-instalador.exe</code></td><td>Configurações › Aplicativos › EFC3D › Desinstalar</td></tr>
 </table>
 <ul>
-  <li>Requer Python 3.10 a 3.13. No Windows, o instalador oferece instalar o Python 3.12 se ele faltar.</li>
+  <li>Os pacotes já trazem tudo. Pelo código (opcional), requer Python 3.10 a 3.13: <code>bash install.sh</code> no Mac ou <code>instalar_windows.bat</code> no Windows.</li>
+  <li>Processador, memória e placa de vídeo: <a data-go="desempenho">Desempenho e requisitos</a>.</li>
   <li>Os arquivos gerados ficam em <code>Documents/EFC3D/saidas</code> (Documentos no Windows). Desinstalar não apaga essa pasta.</li>
   <li>Registro de erros: <code>EFC3D/app.log</code> na pasta do usuário.</li>
 </ul>
@@ -680,6 +705,12 @@ export const DOCS = {
   ],
 
   novidades: [
+    { versao: '1.52', data: '08/11/2026', itens: [
+      'Windows e máquinas sem placa de vídeo bem mais fluidos: o pincel e a caneta não recompilam mais os gráficos a cada traço, girar o modelo ficou até 3 vezes mais rápido e a vista parada não redesenha à toa.',
+      'Clique, caneta e pincel acham o ponto do modelo na hora, mesmo em modelos de mais de 100 mil triângulos.',
+      'Quando o 3D é desenhado sem a placa de vídeo, a vista se ajusta sozinha para continuar fluida e mostra o aviso ⚠ 3D sem placa de vídeo, com o que fazer. No Windows o app pede a placa de alto desempenho.',
+      'Ajuda: novo tópico Desempenho e requisitos, com o mínimo e o recomendado de processador, memória e placa de vídeo.',
+    ] },
     { versao: '1.51', data: '08/11/2026', itens: [
       'Flexi que já veio articulado (print in place): depois de um corte, as partes que se encaixam continuam uma peça só, montada e na posição do modelo. Antes as patas e as juntas iam para a mesa como peças soltas, ou entravam na peça do corte.',
     ] },

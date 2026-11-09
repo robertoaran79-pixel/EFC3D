@@ -146,6 +146,8 @@ function enhance(art) {
   art.querySelectorAll('.hl-docver').forEach((s) => { s.textContent = DOCS.versao; });
   art.querySelectorAll('.hl-docdate').forEach((s) => { s.textContent = DOCS.atualizado; });
   art.querySelectorAll('.hl-sys').forEach((s) => { s.textContent = (window.flexiPlat && window.flexiPlat.sistema) || '?'; });
+  const SOFT_TXT = 'sem aceleração: o 3D é desenhado pelo processador';
+  art.querySelectorAll('.hl-gpu').forEach((s) => { const g = window.flexi && window.flexi.GPU; s.textContent = g ? (g.nome || '?') + (g.soft ? ' · ' + (window.T ? window.T(SOFT_TXT) : SOFT_TXT) : '') : '?'; });
 }
 
 function highlight(root, q) {

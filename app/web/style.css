@@ -412,3 +412,7 @@ html[lang="es"] body.dropping #view::after{content:'Suelta para abrir el modelo 
 /* conectores manuais (1.46) */
 .cn-list{list-style:none;margin:6px 0;padding:0;display:flex;flex-direction:column;gap:6px}
 .cn-item .btn.wide{text-align:left}
+
+/* aviso de 3D sem placa de vídeo (desenho pelo processador) */
+.gpu-aviso{position:absolute;top:62px;left:10px;z-index:6;font:600 12px/1.2 inherit;padding:6px 10px;border-radius:8px;border:1px solid #b8860b;background:#fff4d6;color:#5a3d00;cursor:pointer}
+[data-theme=dark] .gpu-aviso{background:#3a2e10;color:#ffe1a0}

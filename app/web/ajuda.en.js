@@ -10,7 +10,7 @@
 //   <kbd>                                            key
 
 export const DOCS = {
-  versao: '1.51',
+  versao: '1.52',
   atualizado: '08/11/2026',
   grupos: ['Getting started', 'Step by step', 'Workflows', 'Reference'],
   topicos: [
@@ -637,6 +637,29 @@ export const DOCS = {
 </ul>`,
     },
     {
+      id: 'desempenho', grupo: 'Reference', titulo: 'Performance and requirements', icone: '⚡',
+      html: `
+<p>EFC3D draws the 3D view on the graphics card (WebGL). When the system does not hand the card to the app, drawing falls back to the processor: orbiting the model, the pen and the brush become slow. When that happens, the view shows <b>⚠ 3D without graphics card</b> in its corner.</p>
+<h3>Requirements</h3>
+<table class="t">
+  <tr><th></th><th>Minimum</th><th>Recommended</th></tr>
+  <tr><td>System</td><td>Windows 10 or 11 (64-bit) with WebView2; macOS 11</td><td>Windows 11; macOS 13 or newer</td></tr>
+  <tr><td>Processor</td><td>4 cores, 64-bit (8th gen Intel Core i5, AMD Ryzen 3000, 2017 Intel Mac, any Apple Silicon)</td><td>6 cores or more, or Apple Silicon</td></tr>
+  <tr><td>Memory</td><td>8 GB</td><td>16 GB</td></tr>
+  <tr><td>Graphics</td><td>3D acceleration on and an up-to-date driver; integrated graphics are fine (Intel UHD 620, Iris Xe, AMD Radeon Vega)</td><td>Recent integrated or dedicated (NVIDIA or AMD)</td></tr>
+  <tr><td>Screen</td><td>1366 × 768</td><td>1920 × 1080</td></tr>
+</table>
+<p>Measured: a 130 thousand triangle model with 5 cuts uses about 0.5 GB in the engine while exporting. Larger models need more memory and more cutting time.</p>
+<h3>If "3D without graphics card" shows up or the view is slow</h3>
+<ul>
+  <li><b>Remote access or virtual machine</b> (Remote Desktop, AnyDesk, Parallels, VirtualBox): they almost always draw without the card. Use the app directly on the computer.</li>
+  <li><b>Graphics driver:</b> update it from the Intel, AMD or NVIDIA website. On Windows, "Microsoft Basic Display Adapter" in Device Manager means the driver is missing.</li>
+  <li><b>Laptop with two graphics cards (Windows):</b> Settings › System › Display › Graphics › EFC3D › High performance. The app already asks WebView2 for the high performance card.</li>
+  <li><b>Power saving mode</b> on battery slows the card and the processor: plug in or choose Best performance.</li>
+</ul>
+<p>Even without the card the app draws lighter: when idle the scene is not redrawn for nothing; while orbiting or painting the view resolution drops until it is smooth and returns to full sharpness when the mouse stops. The card in use is shown in <a data-go="sobre">About and maintenance</a>.</p>`,
+    },
+    {
       id: 'problemas', grupo: 'Reference', titulo: 'Troubleshooting', icone: '🩺',
       html: `
 <details><summary>The model does not open or gives a mesh error</summary><p>Automatic repair fixes small defects. If it still fails, the file has large defects: export it again from the generator as STL or GLB, or repair it in Bambu Studio (Fix model) and open it again.</p></details>
@@ -662,15 +685,17 @@ export const DOCS = {
 <ul>
   <li>Runs locally: the app's server stays on your computer and nothing is sent to the internet.</li>
   <li>System in use now: <b class="hl-sys"></b>.</li>
+  <li>Graphics card in use: <b class="hl-gpu"></b> (requirements in <a data-go="desempenho">Performance and requirements</a>).</li>
 </ul>
 <h3>Available versions</h3>
 <table class="t">
   <tr><th>System</th><th>Version</th><th>Install or update</th><th>Uninstall</th></tr>
-  <tr><td>🍎 macOS 11 or newer (Apple Silicon or Intel)</td><td>1.5</td><td><code>bash install.sh</code> in Terminal</td><td><code>bash uninstall.sh</code></td></tr>
-  <tr><td>🪟 Windows 10 or 11 (64-bit)</td><td>1.5</td><td>double-click <code>instalar_windows.bat</code></td><td>Start menu › Uninstall EFC3D</td></tr>
+  <tr><td>🍎 macOS 11 or newer (Apple Silicon or Intel)</td><td class="hl-appver"></td><td>open the <code>.dmg</code> and drag EFC3D to Applications</td><td>drag EFC3D to the Trash</td></tr>
+  <tr><td>🪟 Windows 10 or 11 (64-bit)</td><td class="hl-appver"></td><td>run <code>EFC3D-…-windows-instalador.exe</code></td><td>Settings › Apps › EFC3D › Uninstall</td></tr>
 </table>
 <ul>
-  <li>Requires Python 3.10 to 3.13. On Windows, the installer offers to install Python 3.12 if it is missing.</li>
+  <li>The packages include everything. From source (optional) it requires Python 3.10 to 3.13: <code>bash install.sh</code> on Mac or <code>instalar_windows.bat</code> on Windows.</li>
+  <li>Processor, memory and graphics card: <a data-go="desempenho">Performance and requirements</a>.</li>
   <li>Generated files go to <code>Documents/EFC3D/saidas</code> (Documentos on Windows). Uninstalling does not delete this folder.</li>
   <li>Error log: <code>EFC3D/app.log</code> in the user folder.</li>
 </ul>
@@ -680,6 +705,12 @@ export const DOCS = {
   ],
 
   novidades: [
+    { versao: '1.52', data: '08/11/2026', itens: [
+      'Windows and computers without a graphics card run much smoother: the brush and the pen no longer recompile the graphics on every stroke, orbiting the model got up to 3 times faster and an idle view is not redrawn for nothing.',
+      'Clicks, the pen and the brush find the point on the model right away, even on models with more than 100 thousand triangles.',
+      'When the 3D is drawn without the graphics card, the view adjusts itself to stay smooth and shows the ⚠ 3D without graphics card notice, with what to do. On Windows the app asks for the high performance card.',
+      'Help: new Performance and requirements topic, with the minimum and recommended processor, memory and graphics card.',
+    ] },
     { versao: '1.51', data: '08/11/2026', itens: [
       'Flexi that is already articulated (print in place): after a cut, the parts that fit into each other stay one piece, assembled and in the model\'s position. Before, the legs and joints went to the bed as loose parts, or ended up in the cut piece.',
     ] },

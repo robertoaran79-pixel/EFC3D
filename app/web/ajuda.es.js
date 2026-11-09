@@ -10,7 +10,7 @@
 //   <kbd>                                            tecla
 
 export const DOCS = {
-  versao: '1.51',
+  versao: '1.52',
   atualizado: '08/11/2026',
   grupos: ['Empezar', 'Paso a paso', 'Flujos de trabajo', 'Referencia'],
   topicos: [
@@ -637,6 +637,29 @@ export const DOCS = {
 </ul>`,
     },
     {
+      id: 'desempenho', grupo: 'Referencia', titulo: 'Rendimiento y requisitos', icone: '⚡',
+      html: `
+<p>EFC3D dibuja el 3D con la tarjeta de video (WebGL). Cuando el sistema no le entrega la tarjeta a la app, el dibujo pasa al procesador: girar el modelo, la pluma y el pincel se vuelven lentos. En ese caso aparece en la esquina de la vista el aviso <b>⚠ 3D sin tarjeta de video</b>.</p>
+<h3>Requisitos</h3>
+<table class="t">
+  <tr><th></th><th>Mínimo</th><th>Recomendado</th></tr>
+  <tr><td>Sistema</td><td>Windows 10 u 11 (64 bits) con WebView2; macOS 11</td><td>Windows 11; macOS 13 o más reciente</td></tr>
+  <tr><td>Procesador</td><td>4 núcleos, 64 bits (Intel Core i5 de 8.ª generación, AMD Ryzen 3000, Mac Intel de 2017, cualquier Apple Silicon)</td><td>6 núcleos o más, o Apple Silicon</td></tr>
+  <tr><td>Memoria</td><td>8 GB</td><td>16 GB</td></tr>
+  <tr><td>Tarjeta de video</td><td>Aceleración 3D activada y controlador actualizado; la integrada sirve (Intel UHD 620, Iris Xe, AMD Radeon Vega)</td><td>Integrada reciente o dedicada (NVIDIA o AMD)</td></tr>
+  <tr><td>Pantalla</td><td>1366 × 768</td><td>1920 × 1080</td></tr>
+</table>
+<p>Medido: un modelo de 130 mil triángulos con 5 cortes usa cerca de 0,5 GB en el motor durante la exportación. Los modelos más grandes piden más memoria y más tiempo de corte.</p>
+<h3>Si aparece "3D sin tarjeta de video" o la vista va lenta</h3>
+<ul>
+  <li><b>Acceso remoto o máquina virtual</b> (Escritorio remoto, AnyDesk, Parallels, VirtualBox): casi siempre dibujan sin la tarjeta. Usa la app directamente en la computadora.</li>
+  <li><b>Controlador de video:</b> actualízalo desde el sitio de Intel, AMD o NVIDIA. En Windows, "Adaptador de pantalla básico de Microsoft" en el Administrador de dispositivos significa que falta el controlador.</li>
+  <li><b>Portátil con dos tarjetas (Windows):</b> Configuración › Sistema › Pantalla › Gráficos › EFC3D › Alto rendimiento. La app ya le pide a WebView2 la tarjeta de alto rendimiento.</li>
+  <li><b>Modo de ahorro de energía</b> con batería vuelve lentos la tarjeta y el procesador: conecta el cargador o elige Mejor rendimiento.</li>
+</ul>
+<p>Aun sin la tarjeta, la app dibuja más liviano: en reposo la escena no se redibuja sin motivo; al girar o pintar, la resolución de la vista baja hasta quedar fluida y vuelve a la nitidez total cuando el mouse se detiene. La tarjeta en uso aparece en <a data-go="sobre">Acerca de y mantenimiento</a>.</p>`,
+    },
+    {
       id: 'problemas', grupo: 'Referencia', titulo: 'Solución de problemas', icone: '🩺',
       html: `
 <details><summary>El modelo no abre o da error de malla</summary><p>La reparación automática corrige defectos pequeños. Si aún falla, el archivo tiene defectos grandes: expórtalo de nuevo desde el generador en STL o GLB, o repáralo en Bambu Studio (Reparar modelo) y ábrelo de nuevo.</p></details>
@@ -662,15 +685,17 @@ export const DOCS = {
 <ul>
   <li>Se ejecuta localmente: el servidor de la app está en tu computadora y no se envía nada a internet.</li>
   <li>Sistema en uso ahora: <b class="hl-sys"></b>.</li>
+  <li>Tarjeta de video en uso: <b class="hl-gpu"></b> (requisitos en <a data-go="desempenho">Rendimiento y requisitos</a>).</li>
 </ul>
 <h3>Versiones disponibles</h3>
 <table class="t">
   <tr><th>Sistema</th><th>Versión</th><th>Instalar o actualizar</th><th>Desinstalar</th></tr>
-  <tr><td>🍎 macOS 11 o más reciente (Apple Silicon o Intel)</td><td>1.5</td><td><code>bash install.sh</code> en Terminal</td><td><code>bash uninstall.sh</code></td></tr>
-  <tr><td>🪟 Windows 10 u 11 (64 bits)</td><td>1.5</td><td>doble clic en <code>instalar_windows.bat</code></td><td>menú Inicio › Desinstalar EFC3D</td></tr>
+  <tr><td>🍎 macOS 11 o más reciente (Apple Silicon o Intel)</td><td class="hl-appver"></td><td>abre el <code>.dmg</code> y arrastra EFC3D a Aplicaciones</td><td>arrastra EFC3D a la Papelera</td></tr>
+  <tr><td>🪟 Windows 10 u 11 (64 bits)</td><td class="hl-appver"></td><td>ejecuta <code>EFC3D-…-windows-instalador.exe</code></td><td>Configuración › Aplicaciones › EFC3D › Desinstalar</td></tr>
 </table>
 <ul>
-  <li>Requiere Python 3.10 a 3.13. En Windows, el instalador ofrece instalar Python 3.12 si falta.</li>
+  <li>Los paquetes ya traen todo. Desde el código (opcional), requiere Python 3.10 a 3.13: <code>bash install.sh</code> en Mac o <code>instalar_windows.bat</code> en Windows.</li>
+  <li>Procesador, memoria y tarjeta de video: <a data-go="desempenho">Rendimiento y requisitos</a>.</li>
   <li>Los archivos generados quedan en <code>Documents/EFC3D/saidas</code> (Documentos en Windows). Desinstalar no borra esa carpeta.</li>
   <li>Registro de errores: <code>EFC3D/app.log</code> en la carpeta del usuario.</li>
 </ul>
@@ -680,6 +705,12 @@ export const DOCS = {
   ],
 
   novidades: [
+    { versao: '1.52', data: '08/11/2026', itens: [
+      'Windows y equipos sin tarjeta de video mucho más fluidos: el pincel y la pluma ya no recompilan los gráficos en cada trazo, girar el modelo es hasta 3 veces más rápido y la vista en reposo no se redibuja sin motivo.',
+      'Los clics, la pluma y el pincel encuentran el punto del modelo al instante, incluso en modelos de más de 100 mil triángulos.',
+      'Cuando el 3D se dibuja sin la tarjeta de video, la vista se ajusta sola para seguir fluida y muestra el aviso ⚠ 3D sin tarjeta de video, con qué hacer. En Windows la app pide la tarjeta de alto rendimiento.',
+      'Ayuda: nuevo tema Rendimiento y requisitos, con el mínimo y lo recomendado de procesador, memoria y tarjeta de video.',
+    ] },
     { versao: '1.51', data: '08/11/2026', itens: [
       'Flexi que ya viene articulado (print in place): después de un corte, las partes que encajan entre sí siguen siendo una sola pieza, montada y en la posición del modelo. Antes las patas y las juntas iban a la cama como piezas sueltas, o entraban en la pieza del corte.',
     ] },

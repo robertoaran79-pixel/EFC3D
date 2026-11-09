@@ -28,7 +28,7 @@ import texture as TX
 import base64
 import subprocess
 
-VERSION = '1.51'
+VERSION = '1.52'
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 WEB = os.path.join(HERE, 'web')
