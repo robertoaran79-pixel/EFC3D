@@ -1,6 +1,7 @@
 // EFC3D: dicionário en (texto em português -> tradução). Gerado e conferido por check_docs.py.
 (window.FLEXI_I18N_ALL = window.FLEXI_I18N_ALL || {}).en =
 {
+" A pintura está vazia, então nada foi separado por cor (na aba Cores o ⌘Z traz a pintura de volta).": " The painting is empty, so nothing was split by color (⌘Z in the Colors tab brings the painting back).",
 "\"{}\" encaixa reto em \"{}\" (sai {}).": "\"{0}\" fits straight into \"{1}\" (comes out {2}).",
 "\"{}\" não sai reto de \"{}\": mesmo na melhor direção ({}) as peças travam ({} mm³ de uma por trás da outra). Use \"Corrigir o encaixe\" ou corte a parte que trava.": "\"{0}\" does not come out straight from \"{1}\": even in the best direction ({2}) the pieces lock ({3} mm³ of one behind the other). Use \"Fix the fit\" or cut the part that locks.",
 "(\\d+)% da área fica de costas para a direção de encaixe e o tampão levaria pele": "(\\d+)% da área fica de costas para a direção de encaixe e o tampão levaria pele",
@@ -110,6 +111,8 @@
 "A peça saiu em {} partes.": "The piece came out in {0} parts.",
 "A peça é curta demais para o pino: saiu sem pino.": "The part is too short for the pin: came out without a pin.",
 "A peça é fina demais para um pino no corpo: saiu sem pino. Aumente a profundidade.": "The part is too thin for a pin in the body: came out without a pin. Increase the depth.",
+"A pintura do modelo está vazia: não há peças por cor para separar. Se ela sumiu sem querer, na aba Cores o ⌘Z (Ctrl+Z) traz de volta.": "The model's painting is empty: there are no color parts to split. If it disappeared by accident, ⌘Z (Ctrl+Z) in the Colors tab brings it back.",
+"A pintura está vazia, então nada foi separado por cor (na aba Cores o ⌘Z traz a pintura de volta).": "The painting is empty, so nothing was split by color (⌘Z in the Colors tab brings the painting back).",
 "A pintura mudou desde que as áreas foram escolhidas: abra \"Separar por cor\" de novo.": "The painting changed since the areas were chosen: open \"Split by color\" again.",
 "A pintura mudou: abra a lista de áreas de novo.": "The painting changed: open the area list again.",
 "A pintura não corresponde ao modelo aberto. Recarregue o modelo.": "The painting does not match the open model. Reload the model.",
@@ -567,7 +570,9 @@
 "Explorador de Arquivos": "File Explorer",
 "Exportado": "Exported",
 "Exportado ({}): 3MF, STLs separados e relatório na pasta indicada.": "Exported ({0}): 3MF, separate STLs and report in the chosen folder.",
+"Exportado ({}): 3MF, STLs separados e relatório na pasta indicada. A pintura está vazia, então nada foi separado por cor (na aba Cores o ⌘Z traz a pintura de volta).": "Exported ({0}): 3MF, separate STLs and report in the chosen folder. The painting is empty, so nothing was split by color (⌘Z in the Colors tab brings the painting back).",
 "Exportado ({}): 3MF, STLs separados e relatório na pasta indicada. Atenção: {} corte(s) não feito(s), veja os itens vermelhos no relatório.": "Exported ({0}): 3MF, separate STLs and report in the chosen folder. Warning: {1} cut(s) not made, see the red items in the report.",
+"Exportado ({}): 3MF, STLs separados e relatório na pasta indicada. Atenção: {} corte(s) não feito(s), veja os itens vermelhos no relatório. A pintura está vazia, então nada foi separado por cor (na aba Cores o ⌘Z traz a pintura de volta).": "Exported ({0}): 3MF, separate STLs and report in the chosen folder. Warning: {1} cut(s) not made, see the red items in the report. The painting is empty, so nothing was split by color (⌘Z in the Colors tab brings the painting back).",
 "Exportado com juntas vermelhas confirmadas por você:": "Exported with red joints confirmed by you:",
 "Exportado com juntas vermelhas confirmadas por você: {}": "Exported with red joints confirmed by you: {0}",
 "Exportando as peças por cor…": "Exporting parts by color…",

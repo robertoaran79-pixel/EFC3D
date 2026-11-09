@@ -1,6 +1,7 @@
 // EFC3D: dicionário es (texto em português -> tradução). Gerado e conferido por check_docs.py.
 (window.FLEXI_I18N_ALL = window.FLEXI_I18N_ALL || {}).es =
 {
+" A pintura está vazia, então nada foi separado por cor (na aba Cores o ⌘Z traz a pintura de volta).": " La pintura está vacía, así que nada se separó por color (⌘Z en la pestaña Colores trae la pintura de vuelta).",
 "\"{}\" encaixa reto em \"{}\" (sai {}).": "\"{0}\" encaja recto en \"{1}\" (sale {2}).",
 "\"{}\" não sai reto de \"{}\": mesmo na melhor direção ({}) as peças travam ({} mm³ de uma por trás da outra). Use \"Corrigir o encaixe\" ou corte a parte que trava.": "\"{0}\" no sale recto de \"{1}\": incluso en la mejor dirección ({2}) las piezas se traban ({3} mm³ de una detrás de la otra). Usa \"Corregir el encaje\" o corta la parte que traba.",
 "(\\d+)% da área fica de costas para a direção de encaixe e o tampão levaria pele": "(\\d+)% da área fica de costas para a direção de encaixe e o tampão levaria pele",
@@ -110,6 +111,8 @@
 "A peça saiu em {} partes.": "La pieza salió en {0} partes.",
 "A peça é curta demais para o pino: saiu sem pino.": "La pieza es demasiado corta para el pasador: salió sin pasador.",
 "A peça é fina demais para um pino no corpo: saiu sem pino. Aumente a profundidade.": "La pieza es demasiado delgada para un pasador en el cuerpo: salió sin pasador. Aumenta la profundidad.",
+"A pintura do modelo está vazia: não há peças por cor para separar. Se ela sumiu sem querer, na aba Cores o ⌘Z (Ctrl+Z) traz de volta.": "La pintura del modelo está vacía: no hay piezas por color para separar. Si desapareció sin querer, ⌘Z (Ctrl+Z) en la pestaña Colores la trae de vuelta.",
+"A pintura está vazia, então nada foi separado por cor (na aba Cores o ⌘Z traz a pintura de volta).": "La pintura está vacía, así que nada se separó por color (⌘Z en la pestaña Colores trae la pintura de vuelta).",
 "A pintura mudou desde que as áreas foram escolhidas: abra \"Separar por cor\" de novo.": "La pintura cambió desde que se eligieron las áreas: abre \"Separar por color\" de nuevo.",
 "A pintura mudou: abra a lista de áreas de novo.": "La pintura cambió: abre la lista de áreas de nuevo.",
 "A pintura não corresponde ao modelo aberto. Recarregue o modelo.": "La pintura no corresponde al modelo abierto. Vuelve a cargar el modelo.",
@@ -567,7 +570,9 @@
 "Explorador de Arquivos": "Explorador de archivos",
 "Exportado": "Exportado",
 "Exportado ({}): 3MF, STLs separados e relatório na pasta indicada.": "Exportado ({0}): 3MF, STL separados e informe en la carpeta indicada.",
+"Exportado ({}): 3MF, STLs separados e relatório na pasta indicada. A pintura está vazia, então nada foi separado por cor (na aba Cores o ⌘Z traz a pintura de volta).": "Exportado ({0}): 3MF, STL separados e informe en la carpeta indicada. La pintura está vacía, así que nada se separó por color (⌘Z en la pestaña Colores trae la pintura de vuelta).",
 "Exportado ({}): 3MF, STLs separados e relatório na pasta indicada. Atenção: {} corte(s) não feito(s), veja os itens vermelhos no relatório.": "Exportado ({0}): 3MF, STL separados e informe en la carpeta indicada. Atención: {1} corte(s) no hecho(s), mira los ítems rojos en el informe.",
+"Exportado ({}): 3MF, STLs separados e relatório na pasta indicada. Atenção: {} corte(s) não feito(s), veja os itens vermelhos no relatório. A pintura está vazia, então nada foi separado por cor (na aba Cores o ⌘Z traz a pintura de volta).": "Exportado ({0}): 3MF, STL separados e informe en la carpeta indicada. Atención: {1} corte(s) no hecho(s), mira los ítems rojos en el informe. La pintura está vacía, así que nada se separó por color (⌘Z en la pestaña Colores trae la pintura de vuelta).",
 "Exportado com juntas vermelhas confirmadas por você:": "Exportado con juntas rojas confirmadas por ti:",
 "Exportado com juntas vermelhas confirmadas por você: {}": "Exportado con juntas rojas confirmadas por ti: {0}",
 "Exportando as peças por cor…": "Exportando las piezas por color…",

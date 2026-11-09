@@ -10,7 +10,7 @@
 //   <kbd>                                            key
 
 export const DOCS = {
-  versao: '1.53',
+  versao: '1.54',
   atualizado: '08/11/2026',
   grupos: ['Getting started', 'Step by step', 'Workflows', 'Reference'],
   topicos: [
@@ -669,6 +669,7 @@ export const DOCS = {
 <details><summary>The bucket paints too much</summary><p>Lower the angle limit, switch Direction to Creases or use the Line (L), made for organic models.</p></details>
 <details><summary>I opened the project and the colors or cuts are gone</summary><p>In version 1.4, when exporting joints and cuts together, the .flexiproj in the export folder had only the articulated body. Open the project you saved with ⌘S (see Recent). From 1.5 on, every export saves the full project.</p></details>
 <details><summary>"The painting changed since the areas were chosen"</summary><p>Open Split by color again: each area's options come back automatically and the list is rebuilt with the current painting.</p></details>
+<details><summary>"The model's painting is empty"</summary><p>The painting was erased after the areas were chosen (Clear painting, or Delete on an area in Painted areas), so there are no color parts to split. To bring it back: in the Colors tab, ⌘Z (Ctrl+Z) undoes the painting; outside painting, ⌘Z brings back an area deleted from the list. Free cuts or joints are still exported.</p></details>
 <details><summary>Part does not fit on the build plate</summary><p>Change the printer in the Export tab, reduce the size in Adjust size and base or split the large part into more parts.</p></details>
 <details><summary>The parts do not move after printing</summary><p>The clearance is too small for your printer. Print the <a data-go="calibracao">calibration coupon</a> and increase the clearance.</p></details>
 <details><summary>Windows: the installer closes or says it could not find Python</summary><p>Install Python 3.12 from python.org checking "Add python.exe to PATH" (or accept the winget installation the installer offers) and run <code>instalar_windows.bat</code> again. If Windows warns that the file came from the internet, click More info › Run anyway.</p></details>
@@ -706,6 +707,9 @@ export const DOCS = {
   ],
 
   novidades: [
+    { versao: '1.54', data: '09/11/2026', itens: [
+      'Fixed: after the painting was erased, exporting kept saying "The painting changed since the areas were chosen", even after opening Split by color again. Now the app says the painting is empty, exports the rest (free cut, joints) and reminds you that ⌘Z in the Colors tab brings the painting back.',
+    ] },
     { versao: '1.53', data: '09/11/2026', itens: [
       'Free cut: new shape Plug: straight walls (beta). The area inside the line comes out like the plug of the color cut, with the seam exactly on the line, straight walls, a flat bottom and the same clearance all around (0.3 mm, adjustable). Choose it in Cut shape; it is manual only, and the other cuts do not change.',
       'Free cut: a loose dowel from a cut no longer goes back to the body when the model is an articulated flexi.',

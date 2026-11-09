@@ -10,7 +10,7 @@
 //   <kbd>                                            tecla
 
 export const DOCS = {
-  versao: '1.53',
+  versao: '1.54',
   atualizado: '08/11/2026',
   grupos: ['Empezar', 'Paso a paso', 'Flujos de trabajo', 'Referencia'],
   topicos: [
@@ -669,6 +669,7 @@ export const DOCS = {
 <details><summary>El cubo pinta de más</summary><p>Reduce el ángulo límite, cambia Dirección por Pliegues o usa la Línea (L), hecha para modelos orgánicos.</p></details>
 <details><summary>Abrí el proyecto y los colores o los cortes desaparecieron</summary><p>En la versión 1.4, al exportar juntas y cortes a la vez, el .flexiproj de la carpeta de la exportación tenía solo el cuerpo articulado. Abre el proyecto que guardaste con ⌘S (búscalo en Recientes). Desde la 1.5 cada exportación graba el proyecto completo.</p></details>
 <details><summary>"La pintura cambió desde que se eligieron las áreas"</summary><p>Abre Separar por color de nuevo: las opciones de cada área vuelven solas y la lista se rehace con la pintura actual.</p></details>
+<details><summary>"La pintura del modelo está vacía"</summary><p>La pintura se borró después de elegir las áreas (Limpiar pintura, o Supr en un área de Áreas pintadas), así que no hay piezas por color para separar. Para recuperarla: en la pestaña Colores, ⌘Z (Ctrl+Z) deshace la pintura; fuera de la pintura, ⌘Z trae de vuelta el área borrada desde la lista. Si hay corte libre o juntas, se exportan igual.</p></details>
 <details><summary>La pieza no cabe en la cama de impresión</summary><p>Cambia la impresora en la pestaña Exportar, reduce el tamaño en Ajustar tamaño y base o separa la parte grande en más piezas.</p></details>
 <details><summary>Las piezas no giran después de impresas</summary><p>Holgura pequeña para tu impresora. Haz el <a data-go="calibracao">cupón de calibración</a> y aumenta la holgura.</p></details>
 <details><summary>Windows: el instalador se cierra o dice que no encontró Python</summary><p>Instala Python 3.12 desde python.org marcando "Add python.exe to PATH" (o acepta la instalación por winget que ofrece el instalador) y vuelve a ejecutar <code>instalar_windows.bat</code>. Si Windows avisa que el archivo vino de internet, haz clic en Más información › Ejecutar de todas formas.</p></details>
@@ -706,6 +707,9 @@ export const DOCS = {
   ],
 
   novidades: [
+    { versao: '1.54', data: '09/11/2026', itens: [
+      'Corregido: después de borrar la pintura, exportar decía sin parar "La pintura cambió desde que se eligieron las áreas", incluso al abrir Separar por color de nuevo. Ahora la app dice que la pintura está vacía, exporta el resto (corte libre, juntas) y recuerda que ⌘Z en la pestaña Colores trae la pintura de vuelta.',
+    ] },
     { versao: '1.53', data: '09/11/2026', itens: [
       'Corte libre: nueva forma Tapón: paredes rectas (beta). El área dentro de la línea sale como el tapón del corte por color, con la costura exactamente en la línea, paredes rectas, fondo plano y la misma holgura en todo el contorno (0,3 mm, ajustable). Elígela en Forma del corte; es solo manual, y los otros cortes no cambian.',
       'Corte libre: una espiga suelta de un corte ya no vuelve al cuerpo cuando el modelo es un flexi articulado.',

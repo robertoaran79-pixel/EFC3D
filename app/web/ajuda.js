@@ -10,7 +10,7 @@
 //   <kbd>                                            tecla
 
 export const DOCS = {
-  versao: '1.53',
+  versao: '1.54',
   atualizado: '08/11/2026',
   grupos: ['Começar', 'Passo a passo', 'Fluxos de trabalho', 'Referência'],
   topicos: [
@@ -669,6 +669,7 @@ export const DOCS = {
 <details><summary>O balde pinta demais</summary><p>Diminua o ângulo limite, troque Direção por Dobras ou use a Linha (L), feita para modelos orgânicos.</p></details>
 <details><summary>Abri o projeto e as cores ou os cortes sumiram</summary><p>Na versão 1.4, ao exportar juntas e cortes juntos, o .flexiproj da pasta da exportação tinha só o corpo articulado. Abra o projeto que você salvou com ⌘S (veja em Recentes). Da 1.5 em diante toda exportação grava o projeto completo.</p></details>
 <details><summary>"A pintura mudou desde que as áreas foram escolhidas"</summary><p>Abra Separar por cor de novo: as opções de cada área voltam sozinhas e a lista é refeita com a pintura atual.</p></details>
+<details><summary>"A pintura do modelo está vazia"</summary><p>A pintura foi apagada depois de escolher as áreas (Limpar pintura, ou Delete numa área de Áreas pintadas), então não há peças por cor para separar. Para trazer de volta: na aba Cores, o ⌘Z (Ctrl+Z) desfaz a pintura; fora da pintura, o ⌘Z traz de volta a área apagada pela lista. Se houver corte livre ou juntas, eles são exportados mesmo assim.</p></details>
 <details><summary>Peça não cabe na mesa</summary><p>Troque a impressora na aba Exportar, reduza o tamanho em Ajustar tamanho e base ou separe a parte grande em mais peças.</p></details>
 <details><summary>As peças não giram depois de impressas</summary><p>Folga pequena para a sua impressora. Faça o <a data-go="calibracao">cupom de calibração</a> e aumente a folga.</p></details>
 <details><summary>Windows: o instalador fecha ou diz que não achou o Python</summary><p>Instale o Python 3.12 por python.org marcando "Add python.exe to PATH" (ou aceite a instalação pelo winget que o instalador oferece) e rode <code>instalar_windows.bat</code> de novo. Se o Windows avisar que o arquivo veio da internet, clique em Mais informações › Executar assim mesmo.</p></details>
@@ -706,6 +707,9 @@ export const DOCS = {
   ],
 
   novidades: [
+    { versao: '1.54', data: '09/11/2026', itens: [
+      'Corrigido: depois que a pintura era apagada, exportar dava "A pintura mudou desde que as áreas foram escolhidas" sem parar, mesmo abrindo Separar por cor de novo. Agora o app diz que a pintura está vazia, exporta o resto (corte livre, juntas) e lembra que o ⌘Z na aba Cores traz a pintura de volta.',
+    ] },
     { versao: '1.53', data: '09/11/2026', itens: [
       'Corte livre: nova forma Tampão: paredes retas (beta). A área dentro da linha sai como o tampão do corte por cor, com a costura exatamente na linha, paredes retas, fundo plano e a mesma folga em toda a volta (0,3 mm, ajustável). Escolha em Forma do corte; é só manual, e os outros cortes não mudam.',
       'Corte livre: uma cavilha solta de um corte não volta mais para o corpo quando o modelo é um flexi articulado.',

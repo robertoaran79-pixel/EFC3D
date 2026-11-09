@@ -25,8 +25,8 @@ async function loadRegions(newDefault) {
   const model = $('#drop-text').textContent;
   if (SP.model !== model) { SP.model = model; SP.keep = {}; SP.used = false; }
   const r = await post('/api/split/regions', {});
+  if (r.ok) SP.chave = r.chave;                  // a chave segue a pintura de agora, mesmo sem nenhuma área
   if (!r.ok || !r.regioes.length) return r;
-  SP.chave = r.chave;
   SP.of = new Int32Array(unb64(r.por_triangulo).buffer);
   const old = SP.keep || {};
   SP.cfg = {};
@@ -295,6 +295,9 @@ async function forExport() {
   if (!SP.used || !marked().length || !S.base) return null;
   await F.syncPaintNow();
   const r = await loadRegions(false);           // the painting may have changed: same options, fresh areas
+  // a pintura foi apagada depois de escolher as áreas: não há o que separar por cor (antes saía a chave velha e o
+  // servidor recusava para sempre com "a pintura mudou")
+  if (r.ok && !r.regioes.length) return { vazio: true };
   if (!r.ok || !marked().length) return null;
   if (SP.on) renderList();
   return { chave: SP.chave, configs: configs() };

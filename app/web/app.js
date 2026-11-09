@@ -1137,7 +1137,10 @@ async function doExport(force) {
   // one export for both tools: joints (section 2), parts separated by colour (section 4), or both
   let sep = null;
   try { sep = window.flexiSplit ? await window.flexiSplit.forExport() : null; } catch (e) { setStatus('Erro: ' + e.message); return; }
+  const semPintura = !!(sep && sep.vazio);
+  if (semPintura) sep = null;
   const livres = window.flexiFree ? window.flexiFree.forExport() : null;
+  if (semPintura && !S.joints.length && !livres) { setStatus('A pintura do modelo está vazia: não há peças por cor para separar. Se ela sumiu sem querer, na aba Cores o ⌘Z (Ctrl+Z) traz de volta.'); return; }
   if (!S.joints.length && !sep && !livres) { setStatus('Nada para exportar: posicione juntas (aba Juntas), marque áreas para separar, desenhe um corte livre ou crie um plano (aba Cortes).'); return; }
   if (window.flexiFree) window.flexiFree.close();
   if (S.splitting && window.flexiSplit) window.flexiSplit.close();
@@ -1187,7 +1190,8 @@ async function doExport(force) {
       const what = r.modo === 'cortes' ? 'peças separadas' : r.modo === 'juntas_e_cortes' ? 'corpo articulado e peças separadas' : 'corpo articulado';
       const falhas = r.cortes ? r.cortes.regioes.filter((x) => !x.ok).length + (r.cortes.livres || []).filter((x) => !x.ok).length : 0;
       setStatus(`Exportado (${what}): 3MF, STLs separados e relatório na pasta indicada.` +
-        (falhas ? ` Atenção: ${falhas} corte(s) não feito(s), veja os itens vermelhos no relatório.` : ''));
+        (falhas ? ` Atenção: ${falhas} corte(s) não feito(s), veja os itens vermelhos no relatório.` : '') +
+        (semPintura ? ' A pintura está vazia, então nada foi separado por cor (na aba Cores o ⌘Z traz a pintura de volta).' : ''));
     } else if (r.precisa_confirmar) {
       $('#progress').textContent = '';
       setStatus('Há juntas vermelhas. Confira e confirme se quer exportar mesmo assim.');
