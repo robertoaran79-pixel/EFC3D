@@ -475,6 +475,10 @@ def _paint_footprint(Tl, r):
     return cs
 
 
+class _SemPegada(Exception):
+    """Borda vinda da linha do corte livre: a sombra dos triângulos marcados não entra."""
+
+
 def cut_plug(host, R, rid, prm, diag):
     """Plug (tampao). Returns dict(ok, checks, body, piece, extra, axis, ...)."""
     reg = R.list[rid]
@@ -503,6 +507,7 @@ def cut_plug(host, R, rid, prm, diag):
     # contour: painted borders projected on the plane across n, smoothed
     loops, outs = R.loops_out(rid)
     nested = prm.get('_aninhar') or set()
+    borda = prm.get('_borda')                         # corte livre com tampão (beta): a borda é a linha desenhada
     blen = []
     for L in loops:
         P = R.v[L]
@@ -520,6 +525,11 @@ def cut_plug(host, R, rid, prm, diag):
             # later from this one (a pupil from the eye), not left as a post in the body
             ins = R.of[ot[ot >= 0]]
             fill.append(len(ins) > 0 and np.isin(ins, list(nested)).mean() > 0.5)
+    if borda:
+        # a linha já é lisa e é exatamente onde o usuário quer a costura: nada de suavizar nem de engordar a borda
+        polys = [loc(np.asarray(L, np.float64))[:, :2] for L in borda if len(L) >= 3]
+        fill = [False] * len(polys)
+        sigma = 0.0
     if not polys:
         return dict(ok=False, checks=checks + [_chk('erro', 'Não consegui ler a borda desta área.')])
     areas = [abs(_poly_area(P)) for P in polys]
@@ -532,7 +542,7 @@ def cut_plug(host, R, rid, prm, diag):
     # "ranhuras" left at the border
     rr = 0.8 * sigma
     J = mf.JoinType.Round
-    cs2 = cs.offset(rr, J, 2.0, 48).offset(-2 * rr, J, 2.0, 48).offset(rr, J, 2.0, 48)
+    cs2 = cs.offset(rr, J, 2.0, 48).offset(-2 * rr, J, 2.0, 48).offset(rr, J, 2.0, 48) if not borda else cs
     if not cs2.is_empty() and cs2.area() > 0.7 * cs.area():
         cs = cs2
     # a pintura inteira sai com o tampão: a borda suavizada arredonda a forma e o passo acima apaga
@@ -540,6 +550,8 @@ def cut_plug(host, R, rid, prm, diag):
     # lâmina fina. A borda passa a conter sempre a sombra de todos os triângulos pintados (também as
     # paredes do relevo); a suavização só cresce a borda (preenche os dentes), nunca corta pintura.
     try:
+        if borda:
+            raise _SemPegada()
         # fechamento na escala do bico (0,8 mm): o vão entre dois cílios pintados mais estreito que isso
         # deixaria no corpo uma cunha de pele que não imprime; ela vai junto com a peça
         foot = _paint_footprint(loc(R.T[tris]), max(0.8 * sigma, 0.8))
@@ -548,12 +560,17 @@ def cut_plug(host, R, rid, prm, diag):
             for k, P in enumerate(polys):
                 if k != k0 and areas[k] >= 1.0 and not fill[k]:
                     cs = cs - _cs(P)              # os furos da pintura continuam no corpo
+    except _SemPegada:
+        pass
     except Exception:
         traceback.print_exc()
     cs = cs.simplify(0.005)
     if cs.is_empty() or cs.area() < MIN_AREA:
         return dict(ok=False, checks=checks + [_chk('erro', 'A borda suavizada ficou pequena demais: diminua "Suavizar borda".')])
-    checks.append(_chk('ok', f'Borda lisa: a pintura foi suavizada em {_fmt(sigma, 2)} mm ao longo da borda.'))
+    if borda:
+        checks.append(_chk('ok', 'Borda na linha desenhada: a costura fica exatamente nela.'))
+    else:
+        checks.append(_chk('ok', f'Borda lisa: a pintura foi suavizada em {_fmt(sigma, 2)} mm ao longo da borda.'))
     # a peça é a área pintada inteira (a sobrancelha com a largura e as paredes que tem); a folga sai do
     # bolso no corpo, que fica a folga maior em volta. Antes a peça encolhia a folga de cada lado: numa
     # sobrancelha de 2,6 mm ela ficava 23% mais fina e com laterais retas no lugar das do relevo.

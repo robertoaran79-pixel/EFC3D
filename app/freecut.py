@@ -3256,6 +3256,20 @@ def _apply_cuts(out, cuts, S, progress=None):
             cut = dict(cut, _outras_linhas=[np.asarray(L['p'] if isinstance(L, dict) else L, np.float64)
                                              for j_, c_ in enumerate(cuts) if j_ != i for L in (c_.get('linhas') or [])
                                              if len(L['p'] if isinstance(L, dict) else L) >= 3])
+        # 1.53 beta: forma "Tampão" (paredes retas, o motor do corte por cor). Só quando o usuário escolhe; se não
+        # cabe num tampão, o corte não sai e o motivo aparece (nenhum outro motor faz no lugar).
+        if cut.get('forma') == 'tampao' and not cut.get('plano'):
+            import tampaocut as TC
+            bb_ = S.bounding_box()
+            diag_ = float(np.linalg.norm(np.array(bb_[3:]) - np.array(bb_[:3])))
+            try:
+                cur, r = TC.cortar(cur, cut, i, S, diag_, sys.modules[__name__])
+            except Exception as ex:
+                traceback.print_exc()
+                r = dict(i=i, nome=cut.get('nome') or f'Corte {i + 1}', ok=False, forma='tampao',
+                         checks=[_chk('erro', f'O tampão falhou neste corte: {ex}')])
+            res.append(r)
+            continue
         # 1.48 beta: corte pela pele (a forma de fora não muda). Se não der, segue o motor anterior.
         motivo_antigo = None
         if _pele_ligado(cut):
@@ -4703,7 +4717,7 @@ def _reagrupar_cascas(o, S, cuts=None):
         from scipy.spatial import cKDTree
         for k, p in enumerate(pcs):
             i = p.get('livre')
-            if p.get('tipo') == 'corpo' or i is None or not (0 <= i < len(cuts)):
+            if p.get('tipo') in ('corpo', 'cavilha') or i is None or not (0 <= i < len(cuts)):
                 continue
             Ls = _loops_of(cuts[i])
             if not Ls or cuts[i].get('mascara'):           # área marcada: a peça pode ir além da linha

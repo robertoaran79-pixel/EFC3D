@@ -3,6 +3,10 @@
 O histórico público começa na 1.50, a primeira versão aberta. Cada versão tem os pacotes de instalação em
 [Versões](../../releases).
 
+## 1.53 · 09/11/2026
+- Corte livre: nova forma **Tampão: paredes retas (beta)**. A área dentro da linha sai como o tampão do corte por cor, com a costura exatamente na linha, paredes retas, fundo plano e a mesma folga em toda a volta (0,3 mm, ajustável). Escolha em Forma do corte; é só manual, e os outros cortes não mudam.
+- Corte livre: uma cavilha solta de um corte não volta mais para o corpo quando o modelo é um flexi articulado.
+
 ## 1.52 · 08/11/2026
 - Windows e máquinas sem placa de vídeo bem mais fluidos: o pincel e a caneta não recompilam mais os gráficos a cada traço, girar o modelo ficou até 3 vezes mais rápido e a vista parada não redesenha à toa.
 - Clique, caneta e pincel acham o ponto do modelo na hora, mesmo em modelos de mais de 100 mil triângulos.

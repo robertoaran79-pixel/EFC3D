@@ -10,7 +10,7 @@
 //   <kbd>                                            key
 
 export const DOCS = {
-  versao: '1.52',
+  versao: '1.53',
   atualizado: '08/11/2026',
   grupos: ['Getting started', 'Step by step', 'Workflows', 'Reference'],
   topicos: [
@@ -342,6 +342,7 @@ export const DOCS = {
   <li><b>Automatic</b> (default): if the line stays close to a plane (up to 10% of the part's width and at most 1 mm), the cut face is that plane, like a hand-made part: straight seam, firm fit and a flat face for the build plate. If the line goes up and down more than that, or if the plane would take skin from outside the line (a sleeve hem) or split the body, the face follows the line. The report says which one was used. Works for any model: neck, tail, paw, tentacle, mug handle. Since 1.45: when the part is stuck to another one next to the line (the neck at the chin, the arm at the armpit) and the pure plane does not separate it, the face is flat in the middle, where the pin goes, and only within 1.5 mm of the line follows the skin. This also applies to a cut on an already cut piece.</li>
   <li><b>Follow the line</b>: the cut face is a smooth surface that passes through the line you drew. Good for irregular cuts, like a collar or a pant hem.</li>
   <li><b>Plane through the line</b>: the best plane through the line, but only inside it. The face is flat and the part rests on the build plate without supports.</li>
+  <li><b>Plug: straight walls (beta)</b>: the area inside the line comes out like the plug of the color cut. The walls are straight along the fitting direction (the app finds a free direction, tilting up to 40° if needed), the bottom is flat 2 mm below the lowest point of the area and the clearance is the same all around (0.3 mm by default; change it in <b>Clearance between faces</b>). With a line, the seam lies exactly on it; with an area marked by brush or bucket, the edge is smoothed as in the color cut. The piece fits firmly in a pocket with crisp edges and lies flat on the bed. It works for what is seen whole from one side: shell, eye, lid, emblem, face from the front. On an arm, a leg or a part that wraps around, it refuses and says why; then use another shape. Fits: glue only, fixed pin, lock, pin on the piece or dowel (it does not turn and does not use the manual connector).</li>
 </ul>
 <p><b>Hidden joint under a layer.</b> When the line sits in the crease where the part goes into a layer on top (the arm into the sleeve, the leg into the trouser hem, the paw into the fur) and the plane would take a bit of that layer, the part continues under it as a plug with the part's own section and a flat bottom, and the layer stays whole on the body. The seam is hidden in the crease, like hand-made parts. If that does not work either, the cut follows the line as before.</p>
 <h3>Is the part attached somewhere else?</h3>
@@ -705,6 +706,10 @@ export const DOCS = {
   ],
 
   novidades: [
+    { versao: '1.53', data: '09/11/2026', itens: [
+      'Free cut: new shape Plug: straight walls (beta). The area inside the line comes out like the plug of the color cut, with the seam exactly on the line, straight walls, a flat bottom and the same clearance all around (0.3 mm, adjustable). Choose it in Cut shape; it is manual only, and the other cuts do not change.',
+      'Free cut: a loose dowel from a cut no longer goes back to the body when the model is an articulated flexi.',
+    ] },
     { versao: '1.52', data: '08/11/2026', itens: [
       'Windows and computers without a graphics card run much smoother: the brush and the pen no longer recompile the graphics on every stroke, orbiting the model got up to 3 times faster and an idle view is not redrawn for nothing.',
       'Clicks, the pen and the brush find the point on the model right away, even on models with more than 100 thousand triangles.',

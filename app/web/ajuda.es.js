@@ -10,7 +10,7 @@
 //   <kbd>                                            tecla
 
 export const DOCS = {
-  versao: '1.52',
+  versao: '1.53',
   atualizado: '08/11/2026',
   grupos: ['Empezar', 'Paso a paso', 'Flujos de trabajo', 'Referencia'],
   topicos: [
@@ -342,6 +342,7 @@ export const DOCS = {
   <li><b>Automático</b> (predeterminado): si la línea queda cerca de un plano (hasta el 10% del ancho de la parte y como máximo 1 mm), la cara del corte es ese plano, como en una pieza hecha a mano: unión recta, encaje firme y cara plana para la cama. Si la línea sube y baja más que eso, o si el plano se llevaría piel de fuera de la línea (el bajo de la manga) o partiría el cuerpo, la cara sigue la línea. El informe dice cuál se usó. Vale para cualquier modelo: cuello, cola, pata, tentáculo, asa de taza. Desde la 1.45: cuando la parte está pegada a otra junto a la línea (el cuello en la barbilla, el brazo en la axila) y el plano solo no la separa, la cara queda plana en el centro, donde entra el pasador, y solo a menos de 1,5 mm de la línea acompaña la piel. También vale para el corte en una pieza ya cortada.</li>
   <li><b>Seguir la línea</b>: la cara del corte es una superficie lisa que pasa por la línea que dibujaste. Bueno para cortes irregulares, como el cuello de la ropa o el bajo del pantalón.</li>
   <li><b>Plano por la línea</b>: el mejor plano que pasa por la línea, pero solo dentro de ella. La cara queda plana y la pieza se apoya en la cama de impresión sin soportes.</li>
+  <li><b>Tapón: paredes rectas (beta)</b>: el área dentro de la línea sale como el tapón del corte por color. Las paredes son rectas en la dirección de encaje (la app busca la dirección libre, inclinando hasta 40° si hace falta), el fondo es plano 2 mm por debajo del punto más bajo del área y la holgura es la misma en todo el contorno (0,3 mm por defecto; se cambia en <b>Holgura entre las caras</b>). Con línea, la costura queda exactamente en ella; con área marcada con pincel o cubo, el borde se suaviza como en el corte por color. La pieza encaja firme en un hueco de bordes nítidos y se apoya recta en la cama. Sirve para lo que se ve entero desde un solo lado: caparazón, ojo, tapa, emblema, cara de frente. En un brazo, una pierna o una parte que da la vuelta, lo rechaza y dice por qué; entonces usa otra forma. Encajes: solo pegar, pasador fijo, traba, pasador en la pieza o espiga (no gira y no usa el conector manual).</li>
 </ul>
 <p><b>Unión escondida bajo una capa.</b> Cuando la línea está en el pliegue donde la parte entra en una capa de encima (el brazo en la manga, la pierna en el bajo del pantalón, la pata en el pelaje) y el plano se llevaría un trozo de la capa, la parte continúa por debajo como un encaje con la sección de la propia parte y fondo plano, y la capa queda entera en el cuerpo. La unión queda escondida en el pliegue, como en las piezas hechas a mano. Si tampoco así funciona, el corte sigue la línea como antes.</p>
 <h3>¿La parte está unida en otro punto?</h3>
@@ -705,6 +706,10 @@ export const DOCS = {
   ],
 
   novidades: [
+    { versao: '1.53', data: '09/11/2026', itens: [
+      'Corte libre: nueva forma Tapón: paredes rectas (beta). El área dentro de la línea sale como el tapón del corte por color, con la costura exactamente en la línea, paredes rectas, fondo plano y la misma holgura en todo el contorno (0,3 mm, ajustable). Elígela en Forma del corte; es solo manual, y los otros cortes no cambian.',
+      'Corte libre: una espiga suelta de un corte ya no vuelve al cuerpo cuando el modelo es un flexi articulado.',
+    ] },
     { versao: '1.52', data: '08/11/2026', itens: [
       'Windows y equipos sin tarjeta de video mucho más fluidos: el pincel y la pluma ya no recompilan los gráficos en cada trazo, girar el modelo es hasta 3 veces más rápido y la vista en reposo no se redibuja sin motivo.',
       'Los clics, la pluma y el pincel encuentran el punto del modelo al instante, incluso en modelos de más de 100 mil triángulos.',

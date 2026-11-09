@@ -26,7 +26,8 @@ const ENC = {
   manual: 'Conector manual: você posiciona depois da prévia',
 };
 const ENC_CURTO = { colar: 'colar', redondo: 'gira', giratorio: 'gira com trava', losango: 'pino fixo', trava: 'trava', peca: 'pino na peça', cavilha: 'cavilha', manual: 'conector manual' };
-const FORMAS = { auto: 'Automático (plano quando a linha permite)', curva: 'Seguir a linha (face curva)', plano: 'Plano pela linha (face plana)' };
+const FORMAS = { auto: 'Automático (plano quando a linha permite)', curva: 'Seguir a linha (face curva)', plano: 'Plano pela linha (face plana)', tampao: 'Tampão: paredes retas (beta)' };
+const FOLGA_TAMPAO = 0.3;
 const GIRA = ['redondo', 'giratorio'];
 const LUZ = { ok: '🟢', aviso: '🟡', erro: '🔴', nada: '⚪' };
 const DEF = { forma: 'auto', encaixe: 'colar', folga: 0.2, folga_pino: 0.4, pino_mm: 0, inverter: false, soquete: true, soquete_mm: 4 };
@@ -630,6 +631,7 @@ function renderEdit() {
   const gira = GIRA.includes(c.encaixe);
   const manual = c.encaixe === 'manual';
   const pino = c.encaixe !== 'colar' && !manual;
+  const tamp = c.forma === 'tampao' && !gira;           // tampão (beta): a direção, o soquete e o motor são os dele
   const mk = marked(c);
   box.innerHTML = `<div class="card">
     ${mkMode ? `<div class="lbl3">Encaixe e pino de ${c.nome}</div>` : ''}
@@ -637,7 +639,8 @@ function renderEdit() {
     <label>Encaixe<select data-k="encaixe">${Object.entries(ENC).map(([k, t]) => `<option value="${k}" ${c.encaixe === k ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
     <label>Forma do corte<select data-k="forma" ${gira ? 'disabled' : ''}>${Object.entries(FORMAS).map(([k, t]) => `<option value="${k}" ${(gira ? 'plano' : c.forma) === k ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
     ${gira ? '<p class="hint">Para girar, a face do corte é plana.</p>' : ''}
-    ${gira ? '' : `<label>Direção de encaixe<select data-k="dir_modo"><option value="auto" ${c.dir_modo !== 'manual' ? 'selected' : ''}>Automática (o app sugere)</option><option value="manual" ${c.dir_modo === 'manual' ? 'selected' : ''}>Escolher</option></select></label>
+    ${tamp ? `<p class="hint">Beta. A área dentro da linha sai como um tampão: paredes retas na direção de encaixe (o app acha a direção livre), fundo plano 2 mm abaixo do ponto mais baixo da área e a mesma folga em toda a volta. A costura fica exatamente na linha; com área marcada por pincel ou balde, a borda é suavizada como no corte por cor. Serve para o que se vê inteiro de um lado só (casco, olho, tampa, emblema); num braço ou numa perna ele recusa e diz por quê.${manual ? ' O conector manual não vale aqui: escolha outro encaixe.' : ''}</p>` : ''}
+    ${gira || tamp ? '' : `<label>Direção de encaixe<select data-k="dir_modo"><option value="auto" ${c.dir_modo !== 'manual' ? 'selected' : ''}>Automática (o app sugere)</option><option value="manual" ${c.dir_modo === 'manual' ? 'selected' : ''}>Escolher</option></select></label>
     ${c.dir_modo === 'manual' ? `<div class="grid2"><label>Azimute (°)<input type="number" data-k="dir_az" min="0" max="359" step="5" value="${c.dir_az ?? 0}"></label>
       <label>Elevação (°)<input type="number" data-k="dir_el" min="-90" max="90" step="5" value="${c.dir_el ?? 0}"></label></div>
     <label>Quem sai nessa direção<select data-k="dir_quem"><option value="peca" ${c.dir_quem !== 'resto' ? 'selected' : ''}>A peça deste corte</option><option value="resto" ${c.dir_quem === 'resto' ? 'selected' : ''}>O resto do modelo</option></select></label>
@@ -645,18 +648,18 @@ function renderEdit() {
     ${c.dirSug ? `<p class="hint">Direção da última prévia: azimute ${c.dirSug.az}°, elevação ${c.dirSug.el}° (${c.dirSug.sugerida ? 'sugerida pelo app' : 'escolhida por você'}), para a peça deste corte.</p>` : ''}
     <label class="chk"><input type="checkbox" data-k="motor_antigo" ${c.motor_antigo ? 'checked' : ''}> Usar o motor anterior (1.44) neste corte</label>`}
     ${manual ? '<p class="hint">O corte sai só com as faces (navalha). Depois da prévia, em "Conectores manuais" logo abaixo, você posiciona o conector em cada junta: tipo, lugar, giro, diâmetro, profundidade e lado.</p>' : ''}
-    ${manual ? '' : `<label class="chk"><input type="checkbox" data-k="soquete" ${c.soquete && !gira ? 'checked' : ''} ${gira ? 'disabled' : ''}> A peça entra no corpo (soquete)</label>`}
-    ${c.soquete && !gira && !manual ? `<label>Profundidade do soquete (mm)<input type="number" data-k="soquete_mm" min="1" max="30" step="0.5" value="${c.soquete_mm || 4}"></label>
+    ${manual || tamp ? '' : `<label class="chk"><input type="checkbox" data-k="soquete" ${c.soquete && !gira ? 'checked' : ''} ${gira ? 'disabled' : ''}> A peça entra no corpo (soquete)</label>`}
+    ${c.soquete && !gira && !manual && !tamp ? `<label>Profundidade do soquete (mm)<input type="number" data-k="soquete_mm" min="1" max="30" step="0.5" value="${c.soquete_mm || 4}"></label>
     <p class="hint">Da linha para dentro o corte desce reto: toda a superfície dentro da linha vai com a peça e o corpo fica com a cavidade onde ela encaixa. O pino, se houver, fica no fundo.</p>
     <label class="chk"><input type="checkbox" data-k="anel_plano" ${c.anel_plano ? 'checked' : ''}> ▭ Anel plano na junta (apoio na mesa)</label>
     <p class="hint">Opcional. A face em volta do soquete fica plana nas duas peças, de frente para o eixo do encaixe, e a parede da boca do soquete fica com 2 mm. Assim a peça apoia na mesa por esse anel. Na pele, a divisa vira uma reta nesse trecho.</p>` : ''}
     <div class="grid2">
       <label>Folga entre as faces (mm)<input type="number" data-k="folga" min="0.05" max="2" step="0.05" value="${c.folga}"></label>
-      ${pino ? `<label>Folga do pino (mm)<input type="number" data-k="folga_pino" min="0.05" max="1" step="0.05" value="${c.folga_pino}"></label>` : '<span></span>'}
+      ${pino && !tamp ? `<label>Folga do pino (mm)<input type="number" data-k="folga_pino" min="0.05" max="1" step="0.05" value="${c.folga_pino}"></label>` : '<span></span>'}
       ${pino ? `<label>Largura do pino (mm)<input type="number" data-k="pino_mm" min="1.2" step="0.1" value="${c.pino_mm || ''}" placeholder="automática"></label>` : ''}
     </div>
-    <label class="chk"><input type="checkbox" data-k="pele_exata" ${c.pele_exata ? 'checked' : ''}> ✂ Borda exata na pele (mais lento)</label>
-    ${c.pele_exata ? '<p class="hint">Para a divisa entre duas partes que se encostam num vinco (a mecha de cabelo na testa). Quando o corte precisa do volume, a borda na pele ficava até 1,5 mm para dentro da linha (uma faixa de pele lisa colada na outra peça). Com esta opção a borda chega no vinco. O corte demora mais (até uns 2 minutos a mais).</p>' : ''}
+    ${tamp ? '' : `<label class="chk"><input type="checkbox" data-k="pele_exata" ${c.pele_exata ? 'checked' : ''}> ✂ Borda exata na pele (mais lento)</label>`}
+    ${c.pele_exata && !tamp ? '<p class="hint">Para a divisa entre duas partes que se encostam num vinco (a mecha de cabelo na testa). Quando o corte precisa do volume, a borda na pele ficava até 1,5 mm para dentro da linha (uma faixa de pele lisa colada na outra peça). Com esta opção a borda chega no vinco. O corte demora mais (até uns 2 minutos a mais).</p>' : ''}
     <label class="chk"><input type="checkbox" data-k="inverter" ${c.inverter ? 'checked' : ''}> ${mk ? 'Inverter: a peça é o lado sem marcação' : 'Inverter: a peça é o outro lado da linha'}</label>
     ${mkMode ? '' : `<div class="row">
       <button class="btn primary" data-act="edit">✏ Editar a marcação</button>
@@ -683,7 +686,12 @@ function renderEdit() {
       }
       if (k === 'inverter' && !await antesDeModificar(c)) { el.checked = !v; return; }
       c[k] = v;
-      if (k === 'forma') c.forma_fixa = v !== 'auto';      // escolha do usuário: o app não troca a forma
+      if (k === 'forma') {
+        c.forma_fixa = v !== 'auto';                     // escolha do usuário: o app não troca a forma
+        // tampão: folga de 0,3 mm (a do corte por cor) se o usuário não tinha mudado a folga; a volta desfaz
+        if (v === 'tampao' && +c.folga === DEF.folga) c.folga = FOLGA_TAMPAO;
+        else if (v !== 'tampao' && +c.folga === FOLGA_TAMPAO) c.folga = DEF.folga;
+      }
       if (k !== 'nome') { c.luz = 'nada'; c.checks = null; invalidate(); }
       renderList(); draw();
       if (FC.marking) el.blur();                       // as teclas da marcação (L, B, F, E, Enter) voltam a valer
@@ -861,7 +869,7 @@ function novoNome() {
 function cutOut(c) {
   const o = { nome: c.nome, linhas: c.linhas.map((L) => L.p), forma: GIRA.includes(c.encaixe) ? 'plano' : c.forma,
     encaixe: c.encaixe, folga: c.folga, folga_pino: c.folga_pino, pino_mm: c.pino_mm || 0, inverter: !!c.inverter,
-    soquete: !!c.soquete && !GIRA.includes(c.encaixe) && c.encaixe !== 'manual', soquete_mm: c.soquete_mm || 4 };
+    soquete: !!c.soquete && !GIRA.includes(c.encaixe) && c.encaixe !== 'manual' && c.forma !== 'tampao', soquete_mm: c.soquete_mm || 4 };
   if (c.forma_fixa) o.forma_fixa = true;
   if (o.soquete && c.anel_plano) o.anel_plano = true;
   if (c.encaixe === 'manual') o.manual = true;

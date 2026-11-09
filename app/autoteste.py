@@ -4,7 +4,7 @@
     python3 desktop.py --autoteste <pasta>
 
 Monta um boneco simples (tronco, pescoço e cabeça), faz um corte livre no pescoço com soquete, exporta as peças
-(3MF e STLs) e uma junta própria (Arco) no tronco, relê os arquivos gravados e confere a malha. Não abre janela
+(3MF e STLs), corta o topo da cabeça com o tampão (beta) e uma junta própria (Arco) no tronco, relê os arquivos gravados e confere a malha. Não abre janela
 nem rede. Sai com código 0 se tudo deu certo; o relatório vai para <pasta>/autoteste.json.
 """
 import json
@@ -76,6 +76,18 @@ def rodar(pasta, rel=None):
     corpos = [p for p in out2['pieces'] if p['tipo'] == 'corpo']
     etapa('flexi existente: cascas juntas', len(corpos) == 1 and len(E.parts(corpos[0]['mesh'], 0.5)) == 2,
           corpos=[(p['nome'], len(E.parts(p['mesh'], 0.5))) for p in corpos])
+    # corte livre com tampão (beta): a linha em volta do topo da cabeça; a peça sai reta para cima, com a folga
+    # pedida em toda a volta
+    zt = 50.0 + 12.0 * 0.6
+    rt = 12.0 * math.sqrt(1 - 0.36)
+    tt = np.linspace(0, 2 * math.pi, 160, endpoint=False)
+    tamp = dict(nome='Tampa', linhas=[np.c_[rt * np.cos(tt), rt * np.sin(tt), np.full(len(tt), zt)].tolist()], forma='tampao',
+                encaixe='colar', folga=0.3, inverter=False)
+    out3 = FC.apply(SPL.run(S, np.ones(S.num_tri(), np.uint8), []), [tamp], S)
+    lv3 = (out3.get('livres') or [{}])[0]
+    folga_ok = any(c['texto'].startswith('Folga real 0,30') for c in lv3.get('checks', []))
+    etapa('corte livre com tampão', lv3.get('ok') and len(out3['pieces']) == 2 and folga_ok, forma=lv3.get('forma'),
+          avisos=[c['texto'] for c in lv3.get('checks', []) if c['nivel'] != 'ok'])
     jp = ED.suggest_at(S, 0.0, 0.0, 0.0, ED.PADRAO)       # junta sugerida pelo app no tronco, como na tela
     R = ED.export(S, E.write_stl(S), [jp], 0.4, os.path.join(pasta, 'juntas'), nome='autoteste')
     luz = [j.get('luz') for j in R.get('juntas', [])]

@@ -10,7 +10,7 @@
 //   <kbd>                                            tecla
 
 export const DOCS = {
-  versao: '1.52',
+  versao: '1.53',
   atualizado: '08/11/2026',
   grupos: ['Começar', 'Passo a passo', 'Fluxos de trabalho', 'Referência'],
   topicos: [
@@ -342,6 +342,7 @@ export const DOCS = {
   <li><b>Automático</b> (padrão): se a linha fica perto de um plano (até 10% da largura da parte e no máximo 1 mm), a face do corte é esse plano, como numa peça feita à mão: emenda reta, encaixe firme e face plana para a mesa. Se a linha sobe e desce mais que isso, ou se o plano levaria pele de fora da linha (a barra da manga) ou partiria o corpo, a face segue a linha. O relatório diz qual foi usada. Vale para qualquer modelo: pescoço, rabo, pata, tentáculo, alça de caneca. Desde a 1.45: quando a parte está colada em outra junto da linha (o pescoço no queixo, o braço na axila) e o plano puro não separa, a face fica plana no miolo, onde entra o pino, e só a até 1,5 mm da linha acompanha a pele. Também vale para o corte numa peça já cortada.</li>
   <li><b>Seguir a linha</b>: a face do corte é uma superfície lisa que passa pela linha que você desenhou. Bom para cortes irregulares, como a gola ou a barra da calça.</li>
   <li><b>Plano pela linha</b>: o melhor plano que passa pela linha, mas só dentro dela. A face fica plana e a peça apoia na mesa sem suporte.</li>
+  <li><b>Tampão: paredes retas (beta)</b>: a área dentro da linha sai como o tampão do corte por cor. As paredes são retas na direção de encaixe (o app acha a direção livre, inclinando até 40° se for preciso), o fundo é plano 2 mm abaixo do ponto mais baixo da área e a folga é a mesma em toda a volta (0,3 mm por padrão; dá para mudar em <b>Folga entre as faces</b>). Com linha, a costura fica exatamente nela; com área marcada por pincel ou balde, a borda é suavizada como no corte por cor. A peça encaixa firme num bolso de bordas nítidas e deita reta na mesa. Serve para o que se vê inteiro de um lado só: casco, olho, tampa, emblema, rosto de frente. Num braço, numa perna ou numa parte que dá a volta, ele recusa e diz por quê; aí use outra forma. Encaixes: só colar, pino fixo, trava, pino na peça ou cavilha (não gira e não usa conector manual).</li>
 </ul>
 <p><b>Junta escondida debaixo de uma camada.</b> Quando a linha está no vinco onde a parte entra numa camada de cima (o braço na manga, a perna na barra da calça, a pata no pelo) e o plano levaria pedaço da camada, a parte continua por baixo dela como um encaixe com a seção da própria parte e fundo plano, e a camada fica inteira no corpo. A emenda fica escondida no vinco, como nas peças feitas à mão. Se nem assim der certo, o corte segue a linha como antes.</p>
 <h3>A parte está presa em outro ponto?</h3>
@@ -705,6 +706,10 @@ export const DOCS = {
   ],
 
   novidades: [
+    { versao: '1.53', data: '09/11/2026', itens: [
+      'Corte livre: nova forma Tampão: paredes retas (beta). A área dentro da linha sai como o tampão do corte por cor, com a costura exatamente na linha, paredes retas, fundo plano e a mesma folga em toda a volta (0,3 mm, ajustável). Escolha em Forma do corte; é só manual, e os outros cortes não mudam.',
+      'Corte livre: uma cavilha solta de um corte não volta mais para o corpo quando o modelo é um flexi articulado.',
+    ] },
     { versao: '1.52', data: '08/11/2026', itens: [
       'Windows e máquinas sem placa de vídeo bem mais fluidos: o pincel e a caneta não recompilam mais os gráficos a cada traço, girar o modelo ficou até 3 vezes mais rápido e a vista parada não redesenha à toa.',
       'Clique, caneta e pincel acham o ponto do modelo na hora, mesmo em modelos de mais de 100 mil triângulos.',
