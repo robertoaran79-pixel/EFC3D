@@ -3179,6 +3179,31 @@ def _cut_better(o3, o2, cur):
     return len(resto3) <= len(cur['pieces']) and _new_vol(o3) > 10.0 * max(_new_vol(o2), 1e-9)
 
 
+_ESCOLHA = _os.environ.get('FLEXI_ESCOLHA', '1') == '1'
+NAVALHA_FORMAS = ('plano', 'misto', 'curva')
+
+
+def _navalha_antes(cur, cut, S):
+    """O corte sozinho pelo motor anterior (navalha), sobre as peças de agora. Devolve o estado novo (peças novas sem
+    '_orig') se ele saiu como navalha, ou None (aí o corte vai pelo motor pela pele)."""
+    ctx, _SNAP_CTX[0] = _SNAP_CTX[0], None            # as fotos para a tela são do corte inteiro, não desta tentativa
+    try:
+        o = _apply_cuts(dict(cur, pieces=[dict(p, _orig=True) for p in cur['pieces']]), [dict(cut, motor_antigo=True)], S, None)
+    except Exception:
+        traceback.print_exc()
+        return None
+    finally:
+        _SNAP_CTX[0] = ctx
+    lv = o.get('livres') or []
+    if not lv or not lv[0].get('ok') or lv[0].get('forma') not in NAVALHA_FORMAS:
+        if _DBG:
+            print('navalha recusada:', cut.get('nome'), lv[0].get('forma') if lv else None, lv[0].get('ok') if lv else None, flush=True)
+        return None
+    if _DBG:
+        print('navalha:', cut.get('nome'), lv[0].get('forma'), flush=True)
+    return o
+
+
 def _pele_ligado(cut):
     """Corte pela pele (1.48 beta): ligado por padrão; o corte pode pedir o motor anterior."""
     if cut.get('motor_antigo'):
@@ -3299,6 +3324,25 @@ def _apply_cuts(out, cuts, S, progress=None):
                          checks=[_chk('erro', f'O tampão falhou neste corte: {ex}')])
             res.append(r)
             continue
+        # 1.56: escolha do motor por corte (decisão do Roberto, 10/11/2026). O corte roda primeiro no motor anterior;
+        # se ele sai como navalha (plano, plano no miolo ou superfície que segue a linha), fica: borda limpa, face lisa,
+        # soquete e pino como até a 1.47. Se ele cai na grade de voxels (volume) ou na junta escondida (casca), onde
+        # a forma de fora mudava (fenda na manga, faixa de testa), o corte é feito pelo motor pela pele.
+        if _pele_ligado(cut) and _ESCOLHA:
+            o_nav = _navalha_antes(cur, cut, S)
+            if o_nav is not None:
+                for p in o_nav['pieces']:
+                    if not p.pop('_orig', False):
+                        p['livre'] = i
+                r = {k: v for k, v in o_nav['livres'][0].items() if k not in ('piece', 'body_parts', 'extra')}
+                r['i'] = i
+                r['motor'] = 'navalha'
+                r['checks'] = [_chk('ok', 'Navalha: a linha coube numa lâmina lisa, então este corte foi feito pelo motor anterior '
+                                          '(borda limpa e face lisa, com o soquete dele). Cortes que não cabem numa lâmina vão pela pele.')] + list(r.get('checks', []))
+                res.append(r)
+                cur = dict(o_nav)
+                cur.pop('livres', None)
+                continue
         # 1.48 beta: corte pela pele (a forma de fora não muda). Se não der, segue o motor anterior.
         motivo_antigo = None
         if _pele_ligado(cut):
@@ -3454,8 +3498,14 @@ def _soquetes_pele(cur, cuts, res, S):
         i = r.get('i')
         regioes[i] = hreg
         r['_d_soq'] = d
+        # a peça do corte e as que cortes desenhados nela tiraram depois (regra A): o pescoço tirado do tronco leva a
+        # linha de cima do tronco, e o encaixe da cabeça é nele
+        filhos = set(dependentes(cuts[i].get('nome'), cuts)) if cuts[i].get('nome') else set()
         for k, p in enumerate(pcs):
-            if p.get('livre') == i and p.get('tipo') != 'cavilha':
+            lv = p.get('livre')
+            if p.get('tipo') == 'cavilha' or lv is None:
+                continue
+            if lv == i or (0 <= lv < len(cuts) and cuts[lv].get('nome') in filhos):
                 jobs.append((_vol(p['mesh']), i, k, d))
     jobs.sort(key=lambda x: (x[0], x[1]))
     feitos = set()

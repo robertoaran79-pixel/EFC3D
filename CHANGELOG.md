@@ -3,6 +3,10 @@
 O histórico público começa na 1.50, a primeira versão aberta. Cada versão tem os pacotes de instalação em
 [Versões](../../releases).
 
+## 1.56 · 10/11/2026
+- Corte livre: a navalha voltou. Cada corte é tentado primeiro como navalha (o motor anterior); se a linha cabe numa lâmina lisa (braço, perna, pé, manga, pescoço), o corte sai com a borda limpa, a face lisa e o soquete, como até a 1.47. Só os cortes que cairiam na grade de pontos (cabelo, rosto) vão pela pele. O resultado diz qual dos dois fez cada corte.
+- Corte livre: o pescoço voltou a ter pino em cima e embaixo. O encaixe de um corte agora é achado também na peça que um corte feito depois tirou dele (o pescoço tirado do tronco).
+
 ## 1.55 · 10/11/2026
 - Corte livre com vários cortes: um corte desenhado numa peça que veio de outro corte agora é feito depois dele, na ordem certa. Antes um corte menor podia rodar antes e o seguinte perdia a peça (no Papai Noel, a perna parava de sair).
 - Corte livre: "A peça entra no corpo (soquete)" voltou a funcionar no corte pela pele. A peça entra 4 mm no corpo, com paredes retas e o pino padrão no fundo, como o soquete navalha das versões anteriores. O soquete é feito no fim, depois de todos os cortes, e se não couber a junta fica com o pino e o aviso diz por quê. As duas orelhas, os dois braços e as duas pernas agora saem com o mesmo encaixe.
