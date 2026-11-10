@@ -4,8 +4,8 @@ O histórico público começa na 1.50, a primeira versão aberta. Cada versão t
 [Versões](../../releases).
 
 ## 1.56 · 10/11/2026
-- Corte livre: a navalha voltou. Cada corte é tentado primeiro como navalha (o motor anterior); se a linha cabe numa lâmina lisa (braço, perna, pé, manga, pescoço), o corte sai com a borda limpa, a face lisa e o soquete, como até a 1.47. Só os cortes que cairiam na grade de pontos (cabelo, rosto) vão pela pele. O resultado diz qual dos dois fez cada corte.
-- Corte livre: o pescoço voltou a ter pino em cima e embaixo. O encaixe de um corte agora é achado também na peça que um corte feito depois tirou dele (o pescoço tirado do tronco).
+- Corte livre: o encaixe de um corte agora é achado também na peça que um corte feito depois tirou dele. O pescoço tirado do tronco voltou a ter pino em cima e embaixo, e o tronco do Papai Noel ganhou o soquete que entra no corpo.
+- Corte livre: a escolha automática entre navalha e pele por corte, testada nesta versão, ficou desligada. No Papai Noel com as áreas pintadas ela estragava a faixa da cintura, as faixas das pernas e o rosto.
 
 ## 1.55 · 10/11/2026
 - Corte livre com vários cortes: um corte desenhado numa peça que veio de outro corte agora é feito depois dele, na ordem certa. Antes um corte menor podia rodar antes e o seguinte perdia a peça (no Papai Noel, a perna parava de sair).

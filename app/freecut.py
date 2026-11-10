@@ -3179,7 +3179,7 @@ def _cut_better(o3, o2, cur):
     return len(resto3) <= len(cur['pieces']) and _new_vol(o3) > 10.0 * max(_new_vol(o2), 1e-9)
 
 
-_ESCOLHA = _os.environ.get('FLEXI_ESCOLHA', '1') == '1'
+_ESCOLHA = _os.environ.get('FLEXI_ESCOLHA', '0') == '1'
 NAVALHA_FORMAS = ('plano', 'misto', 'curva')
 
 
