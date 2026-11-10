@@ -80,7 +80,7 @@ def cortar(cur, cut, i, S, diag, FC):
         mk = FC.decode_mask(cut['mascara'], n_ or S.num_tri())
     # peça onde o corte foi desenhado
     if cut.get('peca') and cut['peca'].get('ponto') is not None:
-        hk = FC._piece_at(pieces, cut['peca']['ponto'])
+        hk = FC._piece_at(pieces, cut['peca']['ponto'], loops)
         if hk < 0:
             return cur, _falha(i, nome, [_chk('erro', 'A peça deste corte não existe mais (um corte anterior mudou?). Escolha a peça de novo.')])
     elif loops:

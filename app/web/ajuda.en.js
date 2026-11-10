@@ -10,7 +10,7 @@
 //   <kbd>                                            key
 
 export const DOCS = {
-  versao: '1.54',
+  versao: '1.55',
   atualizado: '08/11/2026',
   grupos: ['Getting started', 'Step by step', 'Workflows', 'Reference'],
   topicos: [
@@ -707,6 +707,12 @@ export const DOCS = {
   ],
 
   novidades: [
+    { versao: '1.55', data: '10/11/2026', itens: [
+      'Free cut with many cuts: a cut drawn on a piece that came from another cut now runs after it, in the right order. Before, a smaller cut could run first and the next one lost its piece (on the Santa, the leg stopped coming out).',
+      'Free cut: "Part goes into the body (socket)" works again with the cut along the skin. The piece goes 4 mm into the body, with straight walls and the standard pin at the bottom, like the razor socket of earlier versions. The socket is made at the end, after all the cuts, and if it does not fit the joint keeps the pin and the warning says why. Both ears, both arms and both legs now come out with the same fit.',
+      'Free cut: a cut drawn on the head next to another piece no longer lands on the wrong piece; the right piece is the one the line touches.',
+      'Free cut: fewer teeth on the new face next to the seam.',
+    ] },
     { versao: '1.54', data: '09/11/2026', itens: [
       'Fixed: after the painting was erased, exporting kept saying "The painting changed since the areas were chosen", even after opening Split by color again. Now the app says the painting is empty, exports the rest (free cut, joints) and reminds you that ⌘Z in the Colors tab brings the painting back.',
     ] },

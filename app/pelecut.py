@@ -833,8 +833,37 @@ def acomodar(tp, laco, Vall, pele, R, folga, a, cel, it=12, alvo_mm=1.0):
         allP = np.vstack([Vall[lac], P])
         media = (W @ allP) / np.maximum(deg, 1)[:, None]
         P = 0.7 * P + 0.3 * media[n:]
+    if ALISAR_TAMPA:
+        P = _alisar(P, Vall[lac], W, deg, n, pele, a, cel, kdl, folga, alvo_mm)
     tp['P3'] = P
     return movidos
+
+
+ALISAR_TAMPA = os.environ.get('FLEXI_ALISAR_TAMPA', '1') == '1'
+SOQUETE_NO_FIM = os.environ.get('FLEXI_SOQUETE_PELE', '1') == '1'
+
+
+def _alisar(P, B, W, deg, n, pele, a, cel, kdl, folga, alvo_mm, it=25):
+    """1.55: tira os dentes da tampa. O empurrão do acomodar anda até 3 mm por rodada pela direção de saída onde a
+    pele corre quase paralela a ela, e a média de 30% não puxa de volta um ponto isolado: fica um espinho na faixa
+    junto da costura. Aqui cada ponto vai para a média dos vizinhos (a borda na pele fica parada) e o passo só vale
+    se o ponto continua dentro do sólido, à distância pedida da pele; senão fica onde estava."""
+    dl = kdl.query(P)[0]
+    for _ in range(it):
+        allP = np.vstack([B, P])
+        media = ((W @ allP) / np.maximum(deg, 1)[:, None])[n:]
+        sel = np.where(np.linalg.norm(media - P, axis=1) > 0.1)[0]     # só o que sai da média (os dentes)
+        if not len(sel):
+            break
+        Q = 0.5 * P[sel] + 0.5 * media[sel]
+        cp, dist, _ = pele.perto(Q)
+        alvo = np.clip(0.3 + (np.maximum(dl[sel], kdl.query(cp)[0]) - 0.5) * 0.5, 0.3, alvo_mm) + folga / 2
+        ok = _dentro(Q, a, cel) & (dist >= alvo - 0.02)
+        if not ok.any():
+            break
+        P = P.copy()
+        P[sel[ok]] = Q[ok]
+    return P
 
 
 # ------------------------------------------------------------------ direção
@@ -890,7 +919,7 @@ def cortar(cur, cut, i, S, diag, centro, FC):
         return None, 'sem linha'
     cand = [k for k, p in enumerate(pieces) if p.get('tipo') != 'cavilha']
     if cut.get('peca') and cut['peca'].get('ponto') is not None:
-        hk = FC._piece_at(pieces, cut['peca']['ponto'])
+        hk = FC._piece_at(pieces, cut['peca']['ponto'], loops)
         if hk < 0:
             return None, 'a peça do corte não foi achada'
     else:
@@ -973,12 +1002,61 @@ def cortar(cur, cut, i, S, diag, centro, FC):
     o2 = dict(cur); o2['pieces'] = pieces
     # pino na direção de encaixe (módulo de conectores)
     pin = {'colar': 'pino' if cut.get('soquete') else None, 'losango': 'pino', 'trava': 'pino', 'peca': 'pino', 'cavilha': 'cavilha'}.get(enc)
+    depois = False
+    if enc == 'colar' and cut.get('soquete') and len(pk) == 1 and len(rk) == 1 and SOQUETE_NO_FIM:
+        # 1.55: "só colar" com soquete volta a ter o soquete navalha do motor anterior (a peça entra no corpo, paredes
+        # retas e fundo exatos, pino padrão no fundo). Ele é feito no fim, depois de todos os cortes (freecut.
+        # _soquetes_pele): um soquete feito agora poria o miolo da peça dentro da peça vizinha, e um corte desenhado
+        # depois nela cortaria o miolo junto. Se não couber, fica o pino do módulo de conectores.
+        depois = True
+        pin = None
     if pin:
         o2, ck = _conector(o2, cut, nome, d, pin)
         checks += ck
-    r = dict(i=i, nome=nome, ok=True, checks=checks, forma='pele', encaixe=enc, sem_pino=not pin,
+    r = dict(i=i, nome=nome, ok=True, checks=checks, forma='pele', encaixe=enc, sem_pino=not pin and not depois,
              dir=dict(az=az, el=el, sugerida=sug), _s=round(time.time() - t0, 1))
+    if depois:
+        r['_soquete_depois'] = d.tolist()
+        r['_soquete_regiao'] = hm                    # a peça antes do corte: a região sem a folga no meio
     return o2, r
+
+
+def _pele_da_peca(S, pk):
+    """Que triângulos do modelo são pele da peça pk (o lado da linha que vai com ela): os que estão na superfície
+    dela. Com isso o soquete mede a parede só contra a pele do corpo; sem, um teste de lado pela linha confunde a pele
+    perto de uma linha curva e o soquete chega perto demais da pele do vizinho (judô, Corte 7)."""
+    ST = SPL.tri_array(S)
+    c = ST.mean(1)
+    b = np.array(pk.bounding_box())
+    want = np.zeros(len(ST), bool)
+    perto = np.where(np.all((c >= b[:3] - 0.5) & (c <= b[3:] + 0.5), axis=1))[0]
+    if len(perto):
+        want[perto] = SPL._on_surface(c[perto], SPL.tri_array(pk), tol=0.05) >= 0
+    return want
+
+
+def soquete_junta(pk, pj, regiao, cut, loops, outras, diag, centro, S, FC):
+    """Soquete navalha (freecut.socket_cut) entre a peça pk (a do corte) e a peça pj (a do outro lado da linha), dentro
+    da região (as duas peças juntas, com a folga entre elas: o soquete nunca entra noutra peça). Devolve
+    (peça nova, pj nova, extras, checks) ou (None, motivo) se não coube ou partiria uma peça (aí fica o pino)."""
+    try:
+        r0 = dict(ok=True, checks=[], piece=pk, body_parts=[pj])
+        r2, sc = FC.socket_cut(r0, regiao, loops, dict(cut, encaixe='colar', _outras=outras), diag, centro, 'colar', S,
+                               _pele_da_peca(S, pk))
+        if r2.get('piece') is pk:
+            avs = [c['texto'] for c in sc if c['nivel'] != 'ok']
+            return None, avs[0] if avs else 'O soquete não coube nesta junta.'
+        bp = r2.get('body_parts') or []
+        if (len(bp) != 1 or len(r2['piece'].decompose()) != 1 or r2['piece'].volume() < 0.5
+                or len(bp[0].decompose()) != len(pj.decompose())):
+            return None, 'O soquete partiria uma das peças nesta junta: ficou sem soquete.'
+        if r2['piece'].genus() > pk.genus() or bp[0].genus() > pj.genus():
+            # a parede do soquete furou a peça de lado a lado (um anel em volta do soquete, numa costura ondulada)
+            return None, 'O soquete furaria a peça de lado a lado nesta junta: ficou sem soquete.'
+        return r2['piece'], bp[0], list(r2.get('extra') or []), [c for c in sc if 'Sem pino' not in c['texto']]
+    except Exception:
+        traceback.print_exc()
+        return None, 'O soquete falhou nesta junta: ficou sem soquete.'
 
 
 def _conector(o2, cut, nome, d, tipo):

@@ -3071,9 +3071,11 @@ def _separate_loops(cut):
 _HOST_TOPO = [False]
 
 
-def _piece_at(pieces, ponto):
+def _piece_at(pieces, ponto, linhas=None):
     """A peça que contém o ponto (um ponto logo abaixo da superfície onde a peça foi escolhida); se
-    nenhuma contém, a mais perto dele (até 1 mm)."""
+    nenhuma contém, a mais perto dele (até 1 mm). Com as linhas do corte: se a pele da peça achada fica longe
+    da linha e a de outra peça passa por ela, vale a outra (1.55: o soquete de um corte anterior pode passar
+    logo abaixo da pele onde o ponto foi guardado, e a orelha caía no rosto em vez da cabeça)."""
     from scipy.spatial import cKDTree
     p = np.asarray(ponto, np.float64)
     k = _CUR_K[0]
@@ -3082,6 +3084,8 @@ def _piece_at(pieces, ponto):
             continue
         b = np.array(pc['mesh'].bounding_box())
         if np.all(p >= b[:3] - 0.5) and np.all(p <= b[3:] + 0.5) and E.contains_point(pc['mesh'], p, 0.1 * k):
+            if linhas:
+                return _piece_pela_linha(pieces, j, linhas, k)
             return j
     best, bd = -1, 1.0 * k
     for j, pc in enumerate(pieces):
@@ -3093,11 +3097,36 @@ def _piece_at(pieces, ponto):
     return best
 
 
+def _piece_pela_linha(pieces, j, linhas, k):
+    """Confere a peça j pela linha: distância mediana da linha à pele de cada peça (vértices da malha). Fica j
+    se a linha passa por ela (até 1 mm) ou se nenhuma outra fica claramente mais perto."""
+    from scipy.spatial import cKDTree
+    L = np.vstack([np.asarray(x, np.float64) for x in linhas if len(x)])
+    if not len(L):
+        return j
+    lo, hi = L.min(0) - 2.0, L.max(0) + 2.0
+
+    def med(pc):
+        b = np.array(pc['mesh'].bounding_box())
+        if np.any(b[3:] < lo) or np.any(b[:3] > hi):
+            return np.inf
+        V = np.asarray(pc['mesh'].to_mesh().vert_properties)[:, :3]
+        return float(np.median(cKDTree(V).query(L)[0]))
+    dj = med(pieces[j])
+    if dj <= 1.0 * k:
+        return j
+    outras = [(med(pc), t) for t, pc in enumerate(pieces) if t != j and pc.get('tipo') != 'cavilha']
+    if not outras:
+        return j
+    d2, t2 = min(outras)
+    return t2 if d2 <= 0.5 * dj and d2 <= 1.0 * k else j
+
+
 def _apply_on_piece(cur, cut, i, S):
     """Corte livre numa peça escolhida: a malha da peça faz o papel do modelo (superfície, lados da linha,
     pele de fora para o soquete)."""
     nome = cut.get('nome') or f'Corte {i + 1}'
-    hk = _piece_at(cur['pieces'], cut['peca'].get('ponto') or [0, 0, 0])
+    hk = _piece_at(cur['pieces'], cut['peca'].get('ponto') or [0, 0, 0], [L for L in (cut.get('linhas') or []) if len(L) >= 3])
     if hk < 0:
         o = dict(cur)
         o['livres'] = [dict(i=i, nome=nome, ok=False, checks=[_chk('erro', 'A peça deste corte não existe mais (um corte anterior mudou?). '
@@ -3277,7 +3306,10 @@ def _apply_cuts(out, cuts, S, progress=None):
                 import pelecut as PC
                 bb_ = S.bounding_box()
                 diag_ = float(np.linalg.norm(np.array(bb_[3:]) - np.array(bb_[:3])))
-                o2, r = PC.cortar(cur, cut, i, S, diag_, np.asarray(E.centroid(S), np.float64), sys.modules[__name__])
+                outras_pc = [np.asarray(L, np.float64) for j_, c_ in enumerate(cuts) if j_ != i
+                             for L in (c_.get('linhas') or []) if len(L) >= 3]
+                o2, r = PC.cortar(cur, dict(cut, _outras_linhas=outras_pc), i, S, diag_, np.asarray(E.centroid(S), np.float64),
+                                  sys.modules[__name__])
             except Exception as ex:
                 traceback.print_exc()
                 o2, r = None, f'erro: {ex}'
@@ -3393,10 +3425,130 @@ def _apply_cuts(out, cuts, S, progress=None):
         cur = o2
     if pend is not None and pend[0] < len(res):
         res[pend[0]]['checks'] = res[pend[0]].get('checks', []) + [_chk('aviso', f'Feito pelo motor anterior: {pend[1]}.')]
-    _snap(len(cuts), cur)
+    _snap(len(cuts), cur)                             # a tela desenha os próximos cortes sobre as peças sem soquete
+    if any(r.get('_soquete_depois') for r in res):
+        cur = _soquetes_pele(cur, cuts, res, S)
     o = dict(cur)
     o['livres'] = res
     return o
+
+
+def _soquetes_pele(cur, cuts, res, S):
+    """1.55: o soquete navalha dos cortes pela pele com "só colar" e soquete, no fim, depois de todos os cortes, junta
+    por junta: entre a peça do corte e a peça do outro lado da linha (a menor peça primeiro). Se não couber ou
+    partiria uma peça, a junta fica com o pino do módulo de conectores, e o motivo vai no aviso do corte."""
+    import pelecut as PC
+    from scipy.spatial import cKDTree
+    bb = S.bounding_box()
+    diag = float(np.linalg.norm(np.array(bb[3:]) - np.array(bb[:3])))
+    centro = np.asarray(E.centroid(S), np.float64)
+    pcs = list(cur['pieces'])
+    por_i = {r.get('i'): r for r in res}
+    jobs = []
+    regioes = {}
+    for r in res:
+        d = r.pop('_soquete_depois', None)
+        hreg = r.pop('_soquete_regiao', None)
+        if d is None:
+            continue
+        i = r.get('i')
+        regioes[i] = hreg
+        r['_d_soq'] = d
+        for k, p in enumerate(pcs):
+            if p.get('livre') == i and p.get('tipo') != 'cavilha':
+                jobs.append((_vol(p['mesh']), i, k, d))
+    jobs.sort(key=lambda x: (x[0], x[1]))
+    feitos = set()
+    for _, i, k, d in jobs:
+        cut, r = cuts[i], por_i[i]
+        p = pcs[k]
+        pv = np.asarray(p['mesh'].to_mesh().vert_properties)[:, :3]
+        tr = cKDTree(pv)
+        lim = float(cut.get('folga') or 0.2) + 0.5 * _CUR_K[0]
+        # a costura anda pelas arestas: numa malha grossa ela fica até uma aresta longe da linha
+        Lall = [L for L in (_clean_loop(x) for x in _loops_of(cut)) if L is not None]
+        if Lall:
+            Tp_ = np.asarray(p['T'])
+            near = cKDTree(np.vstack(Lall)).query(Tp_.mean(1), distance_upper_bound=3.0 * _CUR_K[0])[0] < np.inf
+            if near.any():
+                Tn_ = Tp_[near]
+                lim += float(np.median(np.linalg.norm(Tn_ - np.roll(Tn_, 1, axis=1), axis=2)))
+        loops = [L for L in Lall if float(np.median(tr.query(L)[0])) <= lim]
+        if not loops:
+            continue                                  # este pedaço da peça não encosta na linha (outro corte o separou)
+        P_ = np.vstack(loops)
+        cnt = []
+        for j, q in enumerate(pcs):
+            if j == k or q.get('tipo') == 'cavilha':
+                cnt.append(0)
+                continue
+            qb = np.array(q['mesh'].bounding_box())
+            if np.any(qb[3:] < P_.min(0) - 2) or np.any(qb[:3] > P_.max(0) + 2):
+                cnt.append(0)
+                continue
+            qv = np.asarray(q['mesh'].to_mesh().vert_properties)[:, :3]
+            cnt.append(int((cKDTree(qv).query(P_)[0] <= lim).sum()))
+        j = int(np.argmax(cnt)) if cnt else -1
+        nome = r.get('nome') or cut.get('nome') or f'Corte {i + 1}'
+        outras = [np.asarray(L, np.float64) for t, c in enumerate(cuts) if t != i for L in (c.get('linhas') or []) if len(L) >= 3]
+        rr = None
+        if j >= 0 and cnt[j] > 0:
+            # região: a peça de onde o corte saiu (sem a folga entre as duas), menos as peças que cortes depois tiraram
+            # dela e os soquetes já feitos nas vizinhas; sem ela, as duas peças juntas
+            hreg = regioes.get(i)
+            if hreg is not None:
+                hb = np.array(hreg.bounding_box())
+                oth = [q['mesh'] for t, q in enumerate(pcs) if t not in (k, j)
+                       and not (np.any(np.array(q['mesh'].bounding_box())[3:] < hb[:3]) or np.any(np.array(q['mesh'].bounding_box())[:3] > hb[3:]))]
+                regiao = E.flat(hreg - E.union(oth)) if oth else hreg
+            else:
+                regiao = E.flat(E.union([p['mesh'], pcs[j]['mesh']]))
+            rr = PC.soquete_junta(p['mesh'], pcs[j]['mesh'], regiao, cut, loops, outras, diag, centro, S, sys.modules[__name__])
+        if rr is not None and rr[0] is not None:
+            npc, nq, extra, sc = rr
+            q = pcs[j]
+            Tp, cp = _paint_from(p['T'], p['paint'], npc, p['base'])
+            Tq, cq = _paint_from(q['T'], q['paint'], nq, q['base'])
+            pcs[k] = dict(p, mesh=npc, T=Tp, paint=cp)
+            pcs[j] = dict(q, mesh=nq, T=Tq, paint=cq)
+            for t, x in enumerate(extra):
+                m = x['mesh'] if isinstance(x, dict) else x
+                pcs.append(dict(mesh=m, base=p['base'], nome=f'Cavilha · {nome}' + (f' {t + 1}' if t else ''), tipo='cavilha', rid=None,
+                                axis=None, print_T=None, T=tri_array(m), paint=np.full(m.num_tri(), p['base'], np.uint8), livre=i))
+            r['checks'] = r.get('checks', []) + sc
+            feitos.add(i)
+            continue
+        if i in feitos:
+            continue                                  # outro pedaço desta peça já ganhou o soquete
+        motivo = rr[1] if rr is not None else 'Sem soquete: a peça do outro lado da linha não foi achada.'
+        st = dict(cur, pieces=pcs)
+        try:
+            st2, ck = PC._conector(st, cut, nome, np.asarray(d, np.float64), 'pino')
+        except Exception:
+            traceback.print_exc()
+            st2, ck = st, []
+        pcs = list(st2['pieces'])
+        r['checks'] = r.get('checks', []) + [_chk('aviso', motivo)] + ck
+        r['sem_pino'] = not any(c['nivel'] == 'ok' for c in ck)
+        feitos.add(i)
+    # corte cuja linha não encosta mais numa peça só (cortes depois dele dividiram a peça junto da linha): o pino
+    for i in sorted(regioes):
+        if i in feitos:
+            continue
+        cut, r = cuts[i], por_i[i]
+        nome = r.get('nome') or cut.get('nome') or f'Corte {i + 1}'
+        try:
+            st2, ck = PC._conector(dict(cur, pieces=pcs), cut, nome, np.asarray(r.get('_d_soq') or [0, 0, 1], np.float64), 'pino')
+        except Exception:
+            traceback.print_exc()
+            st2, ck = dict(cur, pieces=pcs), []
+        pcs = list(st2['pieces'])
+        r['checks'] = r.get('checks', []) + [_chk('aviso', 'Sem soquete: cortes feitos depois dividiram a peça junto da linha deste corte.')] + ck
+        r['sem_pino'] = not any(c['nivel'] == 'ok' for c in ck)
+        r.pop('_d_soq', None)
+    for r in res:
+        r.pop('_d_soq', None)
+    return dict(cur, pieces=pcs)
 
 
 def _apply_core(out, cuts, S, progress=None):
@@ -5343,12 +5495,48 @@ def _cut_size(S, c, ctx):
             if fm is not None and fm[0].any():
                 if not c.get('peca'):
                     ctx.setdefault('masks', {})[id(c)] = fm[0]
+                else:
+                    ctx.setdefault('pmasks', {})[id(c)] = fm[0]
                 return float(ctx['ar'][fm[0]].sum())
         except Exception:
             traceback.print_exc()
         per = sum(float(np.linalg.norm(np.diff(np.vstack([L, L[:1]]), axis=0), axis=1).sum()) for L in loops)
         return per * per / (4.0 * math.pi)
     return 0.0
+
+
+def _ordem_peca(ordem, cuts, S, ctx):
+    """Cortes numa peça: a ordem pela área (ordem), mas se a linha de um cai na área que o outro leva (no modelo
+    inteiro), o feito antes na lista roda antes. Ordenação topológica que, entre os livres, segue a ordem pela área."""
+    if len(ordem) < 2 or not ctx.get('pmasks'):
+        return ordem
+    from scipy.spatial import cKDTree
+    pm = ctx['pmasks']
+    tr = cKDTree(ctx['cen_S'])
+    linha = {}
+    for i in ordem:
+        Ls = _loops_of(cuts[i])
+        if Ls:
+            _, j = tr.query(np.vstack(Ls))
+            linha[i] = j
+
+    def dentro(a, b):                                   # a linha de a cai na área de b
+        m = pm.get(id(cuts[b]))
+        return m is not None and a in linha and float(m[linha[a]].mean()) > 0.5
+    antes = {i: set() for i in ordem}                   # antes[j]: cortes que precisam rodar antes de j
+    for a in ordem:
+        for b in ordem:
+            if a < b and (dentro(a, b) or dentro(b, a)):
+                antes[b].add(a)
+    pos = {i: k for k, i in enumerate(ordem)}
+    feito, saida = set(), []
+    while len(saida) < len(ordem):
+        livres = [i for i in ordem if i not in feito and antes[i] <= feito]
+        if not livres:                                  # ciclo (não deve acontecer): o resto pela área
+            livres = [i for i in ordem if i not in feito]
+        i = min(livres, key=lambda x: pos[x])
+        saida.append(i); feito.add(i)
+    return saida
 
 
 def _canon_perm(cuts, S):
@@ -5388,8 +5576,11 @@ def _canon_perm(cuts, S):
         key = {i: (sinal * round(_cut_size(S, cuts[i], ctx)), cen(cuts[i]), sig(cuts[i])) for i in ix}
         return sorted(ix, key=lambda i: key[i])
     plano = sorted(plano, key=lambda i: sig(cuts[i])) if len(plano) > 1 else plano
-    # no modelo, a parte maior primeiro; numa peça também (a peça mãe antes da filha)
-    perm = order(livre, -1) + order(peca, -1) + plano
+    # no modelo, a parte maior primeiro; numa peça também (a peça mãe antes da filha), com uma exceção (1.55): dois
+    # cortes numa peça que se sobrepõem (a linha de um cai na área que o outro leva) ficam na ordem em que foram
+    # feitos, porque o de depois foi desenhado sobre a peça já cortada pelo de antes. Pela área, a bota feita depois
+    # rodava antes da barra da calça e tomava a linha dela (Corte 20 e 25 do Papai Noel).
+    perm = order(livre, -1) + _ordem_peca(order(peca, -1), cuts, S, ctx) + plano
     masks = {i: ctx['masks'][id(cuts[i])] for i in range(n) if id(cuts[i]) in ctx.get('masks', {})}
     return perm, masks, ctx.get('cen_S')
 

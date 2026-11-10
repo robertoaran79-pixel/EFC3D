@@ -4,7 +4,7 @@ $ErrorActionPreference = 'Stop'
 $Src  = Split-Path -Parent $PSScriptRoot
 $App  = Join-Path $env:USERPROFILE 'EFC3D'   # programa em app\ e venv\; suas configuracoes ficam ao lado
 $Name = 'EFC3D'
-$Ver  = '1.54'
+$Ver  = '1.55'
 
 Write-Host "== $Name $Ver : instalando" -ForegroundColor Cyan
 if (-not (Test-Path (Join-Path $Src 'app\desktop.py'))) {

@@ -10,7 +10,7 @@
 //   <kbd>                                            tecla
 
 export const DOCS = {
-  versao: '1.54',
+  versao: '1.55',
   atualizado: '08/11/2026',
   grupos: ['Empezar', 'Paso a paso', 'Flujos de trabajo', 'Referencia'],
   topicos: [
@@ -707,6 +707,12 @@ export const DOCS = {
   ],
 
   novidades: [
+    { versao: '1.55', data: '10/11/2026', itens: [
+      'Corte libre con varios cortes: un corte dibujado en una pieza que salió de otro corte ahora se hace después de él, en el orden correcto. Antes un corte más pequeño podía ir primero y el siguiente perdía la pieza (en el Papá Noel, la pierna dejaba de salir).',
+      'Corte libre: "La pieza entra en el cuerpo (encaje)" volvió a funcionar en el corte por la piel. La pieza entra 4 mm en el cuerpo, con paredes rectas y el pasador estándar en el fondo, como el encaje navaja de las versiones anteriores. El encaje se hace al final, después de todos los cortes, y si no cabe la unión queda con el pasador y el aviso dice por qué. Las dos orejas, los dos brazos y las dos piernas ahora salen con el mismo encaje.',
+      'Corte libre: un corte dibujado en la cabeza cerca de otra pieza ya no cae en la pieza equivocada; la pieza correcta es la que toca la línea.',
+      'Corte libre: menos dientes en la cara nueva junto a la costura.',
+    ] },
     { versao: '1.54', data: '09/11/2026', itens: [
       'Corregido: después de borrar la pintura, exportar decía sin parar "La pintura cambió desde que se eligieron las áreas", incluso al abrir Separar por color de nuevo. Ahora la app dice que la pintura está vacía, exporta el resto (corte libre, juntas) y recuerda que ⌘Z en la pestaña Colores trae la pintura de vuelta.',
     ] },

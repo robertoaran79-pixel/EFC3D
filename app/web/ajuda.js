@@ -10,7 +10,7 @@
 //   <kbd>                                            tecla
 
 export const DOCS = {
-  versao: '1.54',
+  versao: '1.55',
   atualizado: '08/11/2026',
   grupos: ['Começar', 'Passo a passo', 'Fluxos de trabalho', 'Referência'],
   topicos: [
@@ -707,6 +707,12 @@ export const DOCS = {
   ],
 
   novidades: [
+    { versao: '1.55', data: '10/11/2026', itens: [
+      'Corte livre com vários cortes: um corte desenhado numa peça que veio de outro corte agora é feito depois dele, na ordem certa. Antes um corte menor podia rodar antes e o seguinte perdia a peça (no Papai Noel, a perna parava de sair).',
+      'Corte livre: "A peça entra no corpo (soquete)" voltou a funcionar no corte pela pele. A peça entra 4 mm no corpo, com paredes retas e o pino padrão no fundo, como o soquete navalha das versões anteriores. O soquete é feito no fim, depois de todos os cortes, e se não couber a junta fica com o pino e o aviso diz por quê. As duas orelhas, os dois braços e as duas pernas agora saem com o mesmo encaixe.',
+      'Corte livre: um corte desenhado na cabeça perto de outra peça não cai mais na peça errada; a peça certa é a que a linha toca.',
+      'Corte livre: menos dentes na face nova junto da costura.',
+    ] },
     { versao: '1.54', data: '09/11/2026', itens: [
       'Corrigido: depois que a pintura era apagada, exportar dava "A pintura mudou desde que as áreas foram escolhidas" sem parar, mesmo abrindo Separar por cor de novo. Agora o app diz que a pintura está vazia, exporta o resto (corte livre, juntas) e lembra que o ⌘Z na aba Cores traz a pintura de volta.',
     ] },
