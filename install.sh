@@ -51,8 +51,8 @@ cat > "$BUNDLE/Contents/Info.plist" <<PLIST
   <key>CFBundleName</key><string>$NAME</string>
   <key>CFBundleDisplayName</key><string>$NAME</string>
   <key>CFBundleIdentifier</key><string>com.rlalabs.efc3d.desktop</string>
-  <key>CFBundleVersion</key><string>1.56</string>
-  <key>CFBundleShortVersionString</key><string>1.56</string>
+  <key>CFBundleVersion</key><string>1.57</string>
+  <key>CFBundleShortVersionString</key><string>1.57</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleExecutable</key><string>launcher</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>

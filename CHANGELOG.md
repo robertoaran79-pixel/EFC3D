@@ -3,9 +3,13 @@
 O histórico público começa na 1.50, a primeira versão aberta. Cada versão tem os pacotes de instalação em
 [Versões](../../releases).
 
-## 1.56 · 10/11/2026
-- Corte livre: o encaixe de um corte agora é achado também na peça que um corte feito depois tirou dele. O pescoço tirado do tronco voltou a ter pino em cima e embaixo, e o tronco do Papai Noel ganhou o soquete que entra no corpo.
-- Corte livre: a escolha automática entre navalha e pele por corte, testada nesta versão, ficou desligada. No Papai Noel com as áreas pintadas ela estragava a faixa da cintura, as faixas das pernas e o rosto.
+## 1.57 · 10/11/2026
+- Corte livre: a navalha voltou onde ela acerta. Cada corte é tentado primeiro como uma lâmina lisa (face plana e borda limpa, como até a 1.47) e fica assim quando a costura cai na linha desenhada; senão vai pela pele, com a costura exata na linha. O soquete agora entra sempre no fim, depois de todos os cortes, e não atravessa mais peça fina (a cintura oca e as faixas com sulcos).
+- Corte pela pele: a borda da face nova ficou limpa. Junto da costura a face segue uma superfície paralela à pele, em vez de cada ponto andar por conta própria (os farelos em volta do encaixe).
+- Corte pela pele: a peça sai sempre para o lado em que a pele dela está. Antes, numa cabeça já aberta por outro corte, a orelha saía para dentro: ficava menor que a outra, com a face em concha, e ocupava o mesmo espaço que a cabeça.
+- Corte livre: o encaixe de um corte é achado também na peça que um corte feito depois tirou dele (o pescoço tirado do tronco tem pino em cima e embaixo).
+- Corte livre: a navalha não abre mais fenda na camada que cobre a parte. No braço que entra na manga, a lâmina passava do braço e cortava a barra da manga; agora ela é aparada na sombra da peça, e o braço sai com a face lisa e a manga inteira.
+- Corte livre: o pino do encaixe vai na direção em que a peça entra quando no eixo da parte ele não cabe ou sairia fino e torto, e as duas partes iguais de um boneco (as duas pernas, as duas faixas) saem com o mesmo encaixe.
 
 ## 1.55 · 10/11/2026
 - Corte livre com vários cortes: um corte desenhado numa peça que veio de outro corte agora é feito depois dele, na ordem certa. Antes um corte menor podia rodar antes e o seguinte perdia a peça (no Papai Noel, a perna parava de sair).

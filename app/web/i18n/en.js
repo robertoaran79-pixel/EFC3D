@@ -818,6 +818,7 @@
 "Nada para exportar: posicione juntas (aba Juntas), marque áreas para separar, desenhe um corte livre ou crie um plano (aba Cortes).": "Nothing to export: place joints (Joints tab), mark areas to split, draw a free cut or create a plane (Cuts tab).",
 "Nada para separar: marque áreas para separar ou crie um corte livre (aba Cortes).": "Nothing to split: mark areas to split or create a free cut (Cuts tab).",
 "Nada para separar: marque áreas para separar por cor, crie um corte livre ou um corte plano (aba Cortes).": "Nothing to split: mark areas to split by color, create a free cut or a plane cut (Cuts tab).",
+"Navalha: a linha coube numa lâmina lisa (borda limpa e face lisa). Cortes que não cabem numa lâmina vão pela pele.": "Razor: the line fit a smooth blade (clean edge and smooth face). Cuts that do not fit a blade go along the skin.",
 "Navalha: a linha coube numa lâmina lisa, então este corte foi feito pelo motor anterior (borda limpa e face lisa, com o soquete dele). Cortes que não cabem numa lâmina vão pela pele.": "Razor: the line fit a smooth blade, so this cut was made by the previous engine (clean edge and smooth face, with its socket). Cuts that do not fit a blade go along the skin.",
 "Navegador": "Browser",
 "Navegação": "Navigation",

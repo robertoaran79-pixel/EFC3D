@@ -1158,50 +1158,77 @@ def _peg_socket(r, host, sel, axes, depth, gap, clr, wall, invert=None):
             vz = lambda v: float(np.degrees(np.arccos(min(1.0, abs(float(v[2])) / max(np.linalg.norm(v), 1e-12)))))
             if vz(fn) <= 25.0 and vz(fn) < vz(ax):
                 ax = fn
-        Fa = _frame(ax)
-        Tw = SPL._T(Fa, ln.c)
-        Ti = _inv(Tw)
-        hl = E.X(host, Ti)
-        # face do corte em volta do pino: a altura dela no eixo
-        gx = np.linspace(ln.Q2[:, 0].min(), ln.Q2[:, 0].max(), 25)
-        gy = np.linspace(ln.Q2[:, 1].min(), ln.Q2[:, 1].max(), 25)
-        gq = np.stack(np.meshgrid(gx, gy, indexing='ij'), -1).reshape(-1, 2)
-        gq = np.vstack([gq[_inside(ln.Q2, gq)], ln.Q2])
-        Wb = ln.c + np.column_stack([gq, ln.hf(gq)]) @ ln.Fr.T
-        zf = (Wb - ln.c) @ ax
-        zmin, zmax = float(zf.min()) - gap / 2, float(zf.max()) + gap / 2
-        Qa = ((np.asarray(L, np.float64) - ln.c) @ Fa)[:, :2]
-        try:
-            lim = mf.CrossSection([Qa.tolist()], mf.FillRule.NonZero).offset(1.0 * K, mf.JoinType.Round, 2.0, 32)
-        except Exception:
-            lim = None
-        # seção do corpo da face até o fundo do furo (mais a parede): o pino cabe em todas
-        sec = None
-        zs_ = np.linspace(zmin - 0.2 * K, zmin - depth - wall, 6) if invert is None else np.linspace(zmax + 0.2 * K, zmax + depth + wall, 6)
-        for z in zs_:
-            cz = hl.slice(float(z))
-            if lim is not None:
-                cz = cz ^ lim
-            sec = cz if sec is None else (sec ^ cz)
-            if sec.is_empty():
-                break
-        if sec is None or sec.is_empty():
-            falhas.append('_vazia')
+        def _tenta(ax, larga=False):
+            """A maior seção livre para o pino neste eixo: (rpin, ctr, Tw, zmin, zmax) ou o nome da falha."""
+            Fa = _frame(ax)
+            Tw = SPL._T(Fa, ln.c)
+            Ti = _inv(Tw)
+            hl = E.X(host, Ti)
+            # face do corte em volta do pino: a altura dela no eixo
+            gx = np.linspace(ln.Q2[:, 0].min(), ln.Q2[:, 0].max(), 25)
+            gy = np.linspace(ln.Q2[:, 1].min(), ln.Q2[:, 1].max(), 25)
+            gq = np.stack(np.meshgrid(gx, gy, indexing='ij'), -1).reshape(-1, 2)
+            gq = np.vstack([gq[_inside(ln.Q2, gq)], ln.Q2])
+            Wb = ln.c + np.column_stack([gq, ln.hf(gq)]) @ ln.Fr.T
+            zf = (Wb - ln.c) @ ax
+            zmin, zmax = float(zf.min()) - gap / 2, float(zf.max()) + gap / 2
+            Qa = ((np.asarray(L, np.float64) - ln.c) @ Fa)[:, :2]
+            try:
+                lim = mf.CrossSection([Qa.tolist()], mf.FillRule.NonZero).offset(1.0 * K, mf.JoinType.Round, 2.0, 32)
+            except Exception:
+                lim = None
+            # seção do corpo da face até o fundo do furo (mais a parede): o pino cabe em todas
+            sec = None
+            zs_ = np.linspace(zmin - 0.2 * K, zmin - depth - wall, 6) if invert is None else np.linspace(zmax + 0.2 * K, zmax + depth + wall, 6)
+            for z in zs_:
+                cz = hl.slice(float(z))
+                if lim is not None:
+                    cz = cz ^ lim
+                sec = cz if sec is None else (sec ^ cz)
+                if sec.is_empty():
+                    break
+            if sec is None or sec.is_empty():
+                return '_vazia'
+            sec = max(sec.decompose(), key=lambda q: q.area())
+            inr = float(_inradius(sec)[0])
+            if _DBG:
+                print('dbg_raio_inscrito', round(inr / K, 2), flush=True)
+            if inr > 12.0 * K and not larga:
+                return '_larga'                    # seção larga (cintura, tronco): fica o encaixe pela seção                    # seção larga (cintura, tronco): fica o encaixe pela seção
+            avail = sec.offset(-(wall + clr), mf.JoinType.Round, 2.0, 32)
+            if avail.is_empty():
+                return '_fina'
+            rmax, ctr = _inradius(avail)
+            rpin = min(float(rmax), 0.5 * inr, 6.0 * K)
+            if rpin < 0.9 * K:
+                return '_fina'
+            return rpin, ctr, Tw, zmin, zmax
+        t_ = _tenta(ax)
+        # corte pela pele: as faces encaixam na direção de encaixe. Se no eixo da parte o pino não cabe, ou nela cabe
+        # um pino bem maior (no eixo inclinado a seção pega só um canto: pino fino e torto), o pino vai na direção de
+        # encaixe. Seção larga nessa direção: pino de até 12 mm. Nos outros casos nada muda (orelhas, braços)
+        ef = r.get('_eixo_fit')
+        if ef is not None:
+            ef = np.asarray(ef, np.float64).ravel()[:3]
+            ef = ef / max(np.linalg.norm(ef), 1e-12)
+            if float(ef @ ax) < 0:
+                ef = -ef
+            if abs(ef[2]) >= np.cos(np.radians(20)):
+                ef = np.array([0.0, 0.0, np.sign(ef[2])])
+            if t_ != '_larga' and r.get('_eixo_face') and _tenta(ef) == '_larga':
+                # navalha: a seção vista de frente para a face é larga, então o encaixe é pela seção, mesmo que no
+                # eixo procurado da parte caiba um pino (as duas pernas do boneco saem com o mesmo encaixe)
+                t_ = '_larga'
+            if t_ != '_larga' and float(ef @ ax) < np.cos(np.radians(3)):
+                t2_ = _tenta(ef, larga=True)
+                if _DBG:
+                    print('dbg_pino_eixo', t_ if isinstance(t_, str) else round(2 * t_[0], 2), 'encaixe', t2_ if isinstance(t2_, str) else round(2 * t2_[0], 2), flush=True)
+                if not isinstance(t2_, str) and (isinstance(t_, str) or t2_[0] > 1.25 * t_[0]):
+                    t_ = t2_
+        if isinstance(t_, str):
+            falhas.append(t_)
             continue
-        sec = max(sec.decompose(), key=lambda q: q.area())
-        inr = float(_inradius(sec)[0])
-        if inr > 12.0 * K:
-            falhas.append('_larga')                    # seção larga (cintura, tronco): fica o encaixe pela seção
-            continue
-        avail = sec.offset(-(wall + clr), mf.JoinType.Round, 2.0, 32)
-        if avail.is_empty():
-            falhas.append('_fina')
-            continue
-        rmax, ctr = _inradius(avail)
-        rpin = min(float(rmax), 0.5 * inr)
-        if rpin < 0.9 * K:
-            falhas.append('_fina')
-            continue
+        rpin, ctr, Tw, zmin, zmax = t_
         prof = _peg_profile(rpin)
         # pino: da face até 'depth' para dentro do corpo, ponta com chanfro de 0,4 mm
         ch = min(0.4 * K, 0.3 * rpin)
@@ -1223,31 +1250,43 @@ def _peg_socket(r, host, sel, axes, depth, gap, clr, wall, invert=None):
         subs.append(E.X(bore, Tw))
         infos.append((2 * rpin, depth))
     if not adds or '_larga' in falhas:
+        if _DBG:
+            print('dbg_pino_recusado', 1, falhas, flush=True)
         return None
     P_add, P_sub = E.union(adds), E.union(subs)
     if invert is None:
         piece2 = E.flat(piece + E.flat(P_add ^ host))     # o pino só existe dentro do modelo
         if len(E.parts(piece2, 0.3)) > len(E.parts(piece, 0.3)):
+            if _DBG:
+                print('dbg_pino_recusado', 2, falhas, flush=True)
             return None
         body2 = []
         for bp in body_parts:
             body2 += E.parts(E.flat(bp - P_sub), 0.5)
         body2 = sorted([b for b in body2 if _vol(b) >= 1.0], key=lambda q: -_vol(q))
         if len(body2) > len(body_parts):
+            if _DBG:
+                print('dbg_pino_recusado', 3, falhas, flush=True)
             return None                                   # o furo partiu o corpo: sem pino
         # o furo não pode abrir na pele de fora: o volume tirado do corpo é o do furo abaixo da face
         if sum(_vol(b) for b in body_parts) - sum(_vol(b) for b in body2) <= 0:
+            if _DBG:
+                print('dbg_pino_recusado', 4, falhas, flush=True)
             return None
     else:
         p_in = E.flat(P_add ^ host)
         # o pino vai para a parte do corpo onde ele está ancorado (a do meio)
         k_ = max(range(len(body_parts)), key=lambda k: _vol(body_parts[k] ^ p_in))
         if _vol(body_parts[k_] ^ p_in) <= 0:
+            if _DBG:
+                print('dbg_pino_recusado', 5, falhas, flush=True)
             return None
         body2 = list(body_parts)
         body2[k_] = E.flat(body2[k_] + p_in)
         piece2 = E.flat(piece - P_sub)
         if len(E.parts(piece2, 0.5)) > len(E.parts(piece, 0.5)) or _vol(piece) - _vol(piece2) <= 0:
+            if _DBG:
+                print('dbg_pino_recusado', 6, falhas, flush=True)
             return None
     notas = []
     d_txt = ', '.join(f'{_fmt(d, 1)} mm' for d, _ in infos)
@@ -1838,6 +1877,8 @@ def casca_cut(host, cut, diag, centro_modelo):
     checks = [_chk('ok', f'Junta escondida: a parte continua {_fmt(best["depth"], 1)} mm por baixo da camada de cima (a barra da manga, '
                          f'a gola) como encaixe com fundo plano, e a camada fica inteira no corpo. Folga {_fmt(gap, 2)} mm.'),
               _chk('ok', f'Peça separada: {_fmt(best["pv"], 0)} mm³ ({round(100 * best["pv"] / max(_vol(host), 1e-9))}% da parte).')]
+    if _SO_NAVALHA[0]:
+        raise _NaoNavalha('casca')
     return dict(ok=True, checks=checks, piece=best['piece'], body_parts=best['body_parts'], extra=[], axis=best['ax'],
                 print_T=_inv(best['Tw']), forma='casca', encaixe='colar', _casca=True)
 
@@ -2525,6 +2566,8 @@ def cut_by_mask_volume(host, S, mask, cut, diag, prefer=None, loops=None, centro
     """A peça é o volume mais perto da área marcada (o mesmo método do "pela pintura" do Separar
     por cor). Serve quando a parte encosta no corpo ao longo de uma faixa (trança no ombro e no
     peito, mão na perna): as faces de contato seguem a borda da marcação."""
+    if _SO_NAVALHA[0]:
+        raise _NaoNavalha('volume')
     prm = dict(DEF)
     prm.update({k: v for k, v in cut.items() if v is not None})
     enc = prm['encaixe'] if prm['encaixe'] in ENCAIXES else 'colar'
@@ -3179,26 +3222,186 @@ def _cut_better(o3, o2, cur):
     return len(resto3) <= len(cur['pieces']) and _new_vol(o3) > 10.0 * max(_new_vol(o2), 1e-9)
 
 
-_ESCOLHA = _os.environ.get('FLEXI_ESCOLHA', '0') == '1'
+_ESCOLHA = _os.environ.get('FLEXI_ESCOLHA', '1') == '1'
+_SO_NAVALHA = [False]
+
+
+class _NaoNavalha(BaseException):
+    """O motor anterior ia sair da lâmina (grade de voxels ou junta escondida) numa tentativa só de navalha."""
 NAVALHA_FORMAS = ('plano', 'misto', 'curva')
+
+
+COSTURA_P95 = float(_os.environ.get('FLEXI_COSTURA_P95', '1.0'))
+COSTURA_MAX = float(_os.environ.get('FLEXI_COSTURA_MAX', '2.0'))
+COSTURA_ABS = float(_os.environ.get('FLEXI_COSTURA_ABS', '3.0'))
+_COSTURA_P99 = [0.0]
+
+
+def _costura_ate_linha(pecas, host, loops):
+    """Distância da costura real de um corte (onde a face nova do corte encontra a superfície que a peça já tinha)
+    até a linha desenhada. Uma lâmina plana numa linha que não é plana foge da linha onde a superfície abre (o cinto
+    em cima da barra do casaco leva uma aba fina da barra). Devolve (p95, máximo, pontos) em mm reais."""
+    from scipy.spatial import cKDTree
+    k = _CUR_K[0]
+    L = np.vstack([np.asarray(x, np.float64) for x in loops])
+    seg = []
+    for x in loops:                                   # linha densa (0,2 mm)
+        x = np.asarray(x, np.float64)
+        P = np.vstack([x, x[:1]])
+        d = np.linalg.norm(np.diff(P, axis=0), axis=1)
+        n = np.maximum(1, np.ceil(d / (0.2 * k)).astype(int))
+        for a_, b_, n_ in zip(P[:-1], P[1:], n):
+            seg.append(a_ + (b_ - a_) * (np.arange(n_) / n_)[:, None])
+    kd = cKDTree(np.vstack(seg))
+    TH = tri_array(host)
+    ch = TH.mean(1)
+    raio = 12.0 * k
+    TH = TH[kd.query(ch, distance_upper_bound=raio + 3.0 * k)[0] < np.inf]
+    out = []
+    for m in pecas:
+        V, F = E.mesh_arrays(m)[:2]
+        c = V[F].mean(1)
+        perto = np.where(kd.query(c, distance_upper_bound=raio)[0] < np.inf)[0]
+        if not len(perto) or not len(TH):
+            continue
+        velha = _on_surface(c[perto], TH, tol=0.01 * k) >= 0
+        vv = np.zeros(len(V), bool); vn = np.zeros(len(V), bool)
+        vv[F[perto[velha]].ravel()] = True
+        vn[F[perto[~velha]].ravel()] = True
+        sv = V[vv & vn]
+        if len(sv):
+            out.append(kd.query(sv)[0])
+    if not out:
+        return 0.0, 0.0, 0
+    dd = np.concatenate(out) / k
+    _COSTURA_P99[0] = float(np.percentile(dd, 99))
+    return float(np.percentile(dd, 95)), float(dd.max()), int(len(dd))
+
+
+FECHAR_FENDA = _os.environ.get('FLEXI_FECHAR_FENDA', '1') == '1'
+
+
+def _fechar_fenda(o, cur, cut, host, novas, resto, loops, S, forma):
+    """A fatia da lâmina vai até 1,5 mm além da linha; onde outra camada cobre a parte (a barra da manga em volta do
+    braço) ela abre uma fenda nessa camada. Aqui o resto é refeito com a mesma fatia, mas só até a sombra da peça (a
+    peça vista de frente para a face do corte, mais a folga): a camada de cima fica inteira. Devolve o estado novo,
+    ou None se não deu (mais de um resto, fatia que não confere com a do corte, peça partida, a fenda continua)."""
+    if len(resto) != 1 or len(loops) != 1 or len(novas) != 1:
+        return None
+    k = _CUR_K[0]
+    gap = float(np.clip(float(cut.get('folga') or 0.2), 0.05, 2.0))
+    try:
+        bb = S.bounding_box()
+        diag = float(np.linalg.norm(np.array(bb[3:]) - np.array(bb[:3]))) + 5.0
+        centro = np.asarray(E.centroid(S), np.float64)
+        tirado = E.flat(host - resto[0] - novas[0])        # o que a lâmina tirou (a folga e a fenda)
+        vt = sum(q.volume() for q in tirado.decompose() if q.volume() > 0.01)
+        ln = sl = None
+        for fm in [forma] + [f for f in ('misto', 'plano', 'curva') if f != forma]:
+            try:
+                ln_ = Line(np.asarray(loops[0], np.float64), fm, gap, diag, centro)
+                sl_ = ln_.slab()
+            except Exception:
+                continue
+            fora_ = sum(q.volume() for q in E.flat(tirado - sl_).decompose() if q.volume() > 0.01)
+            if fora_ <= 0.02 and abs((sl_ ^ host).volume() - vt) <= 0.05 * vt + 0.05:
+                ln, sl = ln_, sl_                          # é a fatia que o corte usou
+                break
+        if ln is None:
+            return None
+        Tw = _T(ln.Fr, ln.c)
+        Ti = _inv(Tw)
+        z = (np.asarray(loops[0], np.float64) - ln.c) @ ln.nn
+        z0, z1 = float(z.min()) - gap - 0.5 * k, float(z.max()) + gap + 0.5 * k
+        R = ln.R0 + 6.0 * k
+        caixa = mf.Manifold.cube([2 * R, 2 * R, z1 - z0]).translate([-R, -R, z0])
+        pl = E.X(novas[0], Ti) ^ caixa                     # a peça junto da face do corte, no referencial da linha
+        if pl.is_empty():
+            return None
+        sombra = pl.project().offset(gap + 0.05 * k, mf.JoinType.Round, 2.0, 32)
+        zb = float(np.abs(z).max()) + gap + 6.0 * k
+        dentro = E.X(mf.Manifold.extrude(sombra, 2 * zb).translate([0.0, 0.0, -zb]), Tw)
+        ps = E.parts(E.flat(host - E.flat(sl ^ dentro)), 0.5)
+        corpo = [q for q in ps if (q ^ novas[0]).volume() < 0.5 * q.volume()]
+        if len(corpo) != 1 or len(E.parts(resto[0], 0.5)) != 1:
+            return None
+        r2 = corpo[0]
+        # só material devolvido: nunca menos que o resto, e no máximo a fatia inteira a mais
+        dv = r2.volume() - resto[0].volume()
+        if dv < -0.05 or dv > vt + 0.05 or (r2 ^ novas[0]).volume() > 1e-3:
+            return None
+        p95, mx, n_ = _costura_ate_linha([r2], host, loops)
+        p99 = _COSTURA_P99[0]
+        if _DBG:
+            print('navalha: fenda fechada', cut.get('nome'), 'volta mm3', round(dv, 2), 'costura no resto p95 p99 max n', round(p95, 2), round(p99, 2), round(mx, 2), n_, flush=True)
+        # depois de fechar: um ou dois pontos soltos (menos de 1% da costura, até 3 mm) não reprovam; uma fenda reprova
+        if p95 > COSTURA_P95 or p99 > COSTURA_MAX or mx > COSTURA_ABS:
+            return None
+    except Exception:
+        traceback.print_exc()
+        return None
+    pcs = []
+    for p in o['pieces']:
+        if p['mesh'] is resto[0]:
+            Tp, cp = _paint_from(p['T'], p['paint'], r2, p['base'])
+            p = dict(p, mesh=r2, T=Tp, paint=cp)
+        pcs.append(p)
+    return dict(o, pieces=pcs)
 
 
 def _navalha_antes(cur, cut, S):
     """O corte sozinho pelo motor anterior (navalha), sobre as peças de agora. Devolve o estado novo (peças novas sem
     '_orig') se ele saiu como navalha, ou None (aí o corte vai pelo motor pela pele)."""
     ctx, _SNAP_CTX[0] = _SNAP_CTX[0], None            # as fotos para a tela são do corte inteiro, não desta tentativa
+    _SO_NAVALHA[0] = True                             # só a lâmina: sem soquete agora, e desiste cedo se cair na grade
     try:
         o = _apply_cuts(dict(cur, pieces=[dict(p, _orig=True) for p in cur['pieces']]), [dict(cut, motor_antigo=True)], S, None)
+    except _NaoNavalha as ex:
+        if _DBG:
+            print('navalha recusada cedo:', cut.get('nome'), ex, flush=True)
+        return None
     except Exception:
         traceback.print_exc()
         return None
     finally:
         _SNAP_CTX[0] = ctx
+        _SO_NAVALHA[0] = False
+        if _DBG:
+            import resource
+            print('dbg_pico_mb', cut.get('nome'), resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024, flush=True)
     lv = o.get('livres') or []
     if not lv or not lv[0].get('ok') or lv[0].get('forma') not in NAVALHA_FORMAS:
         if _DBG:
             print('navalha recusada:', cut.get('nome'), lv[0].get('forma') if lv else None, lv[0].get('ok') if lv else None, flush=True)
         return None
+    # a costura tem de ficar na linha desenhada: se a lâmina foge dela, o corte vai pela pele
+    try:
+        loops = [L for L in (_clean_loop(x) for x in (cut.get('linhas') or [])) if L is not None]
+        ids_ = {id(p['mesh']) for p in o['pieces']}
+        hosts_ = [p['mesh'] for p in cur['pieces'] if id(p['mesh']) not in ids_]
+        novas_ = [p['mesh'] for p in o['pieces'] if not p.get('_orig') and p.get('tipo') != 'cavilha']
+        # o que sobrou da peça de onde o corte saiu: a lâmina não pode abrir fenda nela fora da linha (a barra da manga
+        # cortada junto com o braço, defeito P9 da 1.44)
+        idc_ = {id(p['mesh']) for p in cur['pieces']}
+        resto_ = [p['mesh'] for p in o['pieces'] if p.get('_orig') and id(p['mesh']) not in idc_ and p.get('tipo') != 'cavilha']
+        if loops and len(hosts_) == 1 and novas_:
+            p95, mx, n_ = _costura_ate_linha(novas_, hosts_[0], loops)
+            if _DBG:
+                print('navalha costura p95 max n:', cut.get('nome'), round(p95, 2), round(mx, 2), n_, flush=True)
+            if p95 > COSTURA_P95 or mx > COSTURA_MAX:
+                return None
+            if resto_:
+                p95, mx, n_ = _costura_ate_linha(resto_, hosts_[0], loops)
+                if _DBG:
+                    print('navalha costura no resto p95 max n:', cut.get('nome'), round(p95, 2), round(mx, 2), n_, flush=True)
+                if p95 > COSTURA_P95 or mx > COSTURA_MAX:
+                    # a lâmina passa 1,5 mm da linha e abriu fenda no que cobre a parte (a barra da manga em volta do
+                    # braço): devolve ao resto o material tirado fora da sombra da peça; se ainda sobrar fenda, pele
+                    o = _fechar_fenda(o, cur, cut, hosts_[0], novas_, resto_, loops, S, lv[0].get('forma')) if FECHAR_FENDA else None
+                    if o is None:
+                        return None
+    except Exception:
+        traceback.print_exc()
     if _DBG:
         print('navalha:', cut.get('nome'), lv[0].get('forma'), flush=True)
     return o
@@ -3337,8 +3540,15 @@ def _apply_cuts(out, cuts, S, progress=None):
                 r = {k: v for k, v in o_nav['livres'][0].items() if k not in ('piece', 'body_parts', 'extra')}
                 r['i'] = i
                 r['motor'] = 'navalha'
-                r['checks'] = [_chk('ok', 'Navalha: a linha coube numa lâmina lisa, então este corte foi feito pelo motor anterior '
-                                          '(borda limpa e face lisa, com o soquete dele). Cortes que não cabem numa lâmina vão pela pele.')] + list(r.get('checks', []))
+                if (cut.get('encaixe') or 'colar') == 'colar' and cut.get('soquete'):
+                    # o soquete entra no fim, depois de todos os cortes, com as conferências (não atravessa peça fina)
+                    ids_ = {id(p['mesh']) for p in o_nav['pieces']}
+                    hosts_ = [p['mesh'] for p in cur['pieces'] if id(p['mesh']) not in ids_]
+                    novas_ = [p for p in o_nav['pieces'] if p.get('livre') == i and p.get('tipo') != 'cavilha']
+                    ax_ = novas_[0].get('axis') if novas_ else None
+                    r['_soquete_depois'] = [float(x) for x in np.asarray(ax_).ravel()[:3]] if ax_ is not None else [0.0, 0.0, 1.0]
+                    r['_soquete_regiao'] = hosts_[0] if len(hosts_) == 1 else None
+                r['checks'] = [_chk('ok', 'Navalha: a linha coube numa lâmina lisa (borda limpa e face lisa). Cortes que não cabem numa lâmina vão pela pele.')] + list(r.get('checks', []))
                 res.append(r)
                 cur = dict(o_nav)
                 cur.pop('livres', None)
@@ -3553,7 +3763,10 @@ def _soquetes_pele(cur, cuts, res, S):
                 regiao = E.flat(hreg - E.union(oth)) if oth else hreg
             else:
                 regiao = E.flat(E.union([p['mesh'], pcs[j]['mesh']]))
-            rr = PC.soquete_junta(p['mesh'], pcs[j]['mesh'], regiao, cut, loops, outras, diag, centro, S, sys.modules[__name__])
+            if _DBG:
+                print('dbg_soquete_fim', nome, 'peca', p.get('nome'), 'com', pcs[j].get('nome'), flush=True)
+            rr = PC.soquete_junta(p['mesh'], pcs[j]['mesh'], regiao, cut, loops, outras, diag, centro, S, sys.modules[__name__],
+                                  eixo=d, face=r.get('motor') == 'navalha')        # pele: a direção de encaixe; navalha: a perpendicular da face
         if rr is not None and rr[0] is not None:
             npc, nq, extra, sc = rr
             q = pcs[j]
@@ -3565,7 +3778,7 @@ def _soquetes_pele(cur, cuts, res, S):
                 m = x['mesh'] if isinstance(x, dict) else x
                 pcs.append(dict(mesh=m, base=p['base'], nome=f'Cavilha · {nome}' + (f' {t + 1}' if t else ''), tipo='cavilha', rid=None,
                                 axis=None, print_T=None, T=tri_array(m), paint=np.full(m.num_tri(), p['base'], np.uint8), livre=i))
-            r['checks'] = r.get('checks', []) + sc
+            r['checks'] = [c for c in r.get('checks', []) if c['texto'] != 'Sem pino: as faces encaixam e é só colar (CA ou epóxi).'] + sc
             feitos.add(i)
             continue
         if i in feitos:
@@ -3877,7 +4090,7 @@ def _apply_core(out, cuts, S, progress=None):
                         r = r2_
             except Exception:
                 traceback.print_exc()
-        if sock and r.get('ok') and not r.get('_casca'):
+        if sock and r.get('ok') and not r.get('_casca') and not _SO_NAVALHA[0]:
             try:
                 want_s = _want_mask(S, loops, cut, mclean, [TH()], diag, centro, host['mesh'], r['piece'])
                 # as linhas dos outros cortes: um soquete não pode descer até perto da linha de outro corte

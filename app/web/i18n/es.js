@@ -818,6 +818,7 @@
 "Nada para exportar: posicione juntas (aba Juntas), marque áreas para separar, desenhe um corte livre ou crie um plano (aba Cortes).": "Nada para exportar: coloca juntas (pestaña Juntas), marca áreas para separar, dibuja un corte libre o crea un plano (pestaña Cortes).",
 "Nada para separar: marque áreas para separar ou crie um corte livre (aba Cortes).": "Nada para separar: marca áreas para separar o crea un corte libre (pestaña Cortes).",
 "Nada para separar: marque áreas para separar por cor, crie um corte livre ou um corte plano (aba Cortes).": "Nada para separar: marca áreas para separar por color, crea un corte libre o un corte plano (pestaña Cortes).",
+"Navalha: a linha coube numa lâmina lisa (borda limpa e face lisa). Cortes que não cabem numa lâmina vão pela pele.": "Navaja: la línea cupo en una hoja lisa (borde limpio y cara lisa). Los cortes que no caben en una hoja van por la piel.",
 "Navalha: a linha coube numa lâmina lisa, então este corte foi feito pelo motor anterior (borda limpa e face lisa, com o soquete dele). Cortes que não cabem numa lâmina vão pela pele.": "Navaja: la línea cupo en una hoja lisa, así que este corte lo hizo el motor anterior (borde limpio y cara lisa, con su encaje). Los cortes que no caben en una hoja van por la piel.",
 "Navegador": "Navegador",
 "Navegação": "Navegación",

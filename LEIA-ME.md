@@ -1,12 +1,12 @@
-# EFC3D 1.56
+# EFC3D 1.57
 
 **EFC3D (Easy Flexy and Cuts 3D)**: transforma um modelo 3D em um flexi articulado ou em peças que encaixam, prontas
 para imprimir. Mac e Windows, tudo no seu computador. A ajuda completa fica dentro do app (botão ❓).
 
 ## Instalar
-- **Mac:** abra o `EFC3D-1.56-mac-….dmg` e arraste o EFC3D para Aplicativos. Na primeira vez, clique com o botão
+- **Mac:** abra o `EFC3D-1.57-mac-….dmg` e arraste o EFC3D para Aplicativos. Na primeira vez, clique com o botão
   direito no EFC3D e escolha **Abrir** (o macOS pede essa confirmação para apps baixados fora da App Store).
-- **Windows:** rode o `EFC3D-1.56-windows-instalador.exe` e siga os passos. O app fica no menu Iniciar.
+- **Windows:** rode o `EFC3D-1.57-windows-instalador.exe` e siga os passos. O app fica no menu Iniciar.
 - **Pelo código (opcional):** com Python 3.10 a 3.13, `bash install.sh` no Mac ou `instalar_windows.bat` no Windows.
 
 ## Requisitos
@@ -33,7 +33,7 @@ ficam lentos. O app avisa com "⚠ 3D sem placa de vídeo"; o que fazer está na
 4. **Cortes:** separe as áreas pintadas por cor, desenhe cortes livres ou use o corte plano.
 5. **Exportar:** um botão gera o 3MF, os STLs e as placas para a sua impressora.
 
-## Novidades da 1.56
+## Novidades da 1.57
 Veja o [CHANGELOG](CHANGELOG.md).
 
 ## Licença

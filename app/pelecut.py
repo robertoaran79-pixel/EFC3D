@@ -568,6 +568,38 @@ def _dentro(P, a, cel):
     return res
 
 
+FOLGA_NORMAL = os.environ.get('FLEXI_FOLGA_NORMAL', '0') == '1'
+
+
+def _dir_folga(B, P, tris, d):
+    """Por onde a folga anda em cada ponto da tampa. Onde a tampa olha para a direção de saída, pela direção (como
+    sempre). 1.57: onde ela fica de pé ou se dobra para trás (a concha por dentro de uma orelha), pela normal da
+    própria tampa: andando pela direção de saída ali, as duas faces não se afastavam ou até se cruzavam (a orelha do
+    Papai Noel e a cabeça ocupavam o mesmo espaço em 10 mm³)."""
+    D = np.tile(np.asarray(d, np.float64), (len(P), 1))
+    if not FOLGA_NORMAL or not len(P):
+        return D
+    X = np.vstack([B, P]); T = np.asarray(tris)
+    fn = np.cross(X[T[:, 1]] - X[T[:, 0]], X[T[:, 2]] - X[T[:, 0]])
+    if float((fn @ d).sum()) < 0:
+        fn = -fn
+    vn = np.zeros_like(X)
+    for k in range(3):
+        np.add.at(vn, T[:, k], fn)
+    vn = vn[len(B):]
+    ln = np.linalg.norm(vn, axis=1)
+    ok = ln > 1e-12
+    vn[ok] /= ln[ok][:, None]
+    c = vn @ d
+    w = np.where(ok, np.clip((0.7 - c) / 0.4, 0.0, 1.0), 0.0)
+    if not (w > 0).any():
+        return D
+    out = (1 - w)[:, None] * D + w[:, None] * vn
+    lo = np.linalg.norm(out, axis=1)
+    out[lo > 1e-9] /= lo[lo > 1e-9][:, None]
+    return out
+
+
 def montar(Vall, pele_tris, tampas, lacos, R, lado, folga):
     """Peça = pele (triângulos originais divididos) + tampa de cada laço, com metade da folga para dentro dela."""
     Vs = [Vall]; Ts = [pele_tris]; off = len(Vall)
@@ -576,7 +608,7 @@ def montar(Vall, pele_tris, tampas, lacos, R, lado, folga):
         if tp.get('contato'):                          # tampa de contato: a folga pela normal do contato
             Pin = tp['P3c'] + (lado * folga / 2) * tp['nrm']
         elif tp.get('P3') is not None:                  # tampa acomodada dentro da peça (3D)
-            Pin = tp['P3'] + (lado * folga / 2) * R[2]
+            Pin = tp['P3'] + (lado * folga / 2) * _dir_folga(Vall[np.asarray(laco)], tp['P3'], tp['tris'], R[2])
         else:
             z = tp['inner_z'] + lado * folga / 2
             Pin = np.c_[tp['inner_uv'], z] @ R
@@ -712,17 +744,35 @@ def _nota(T, A, d, cel, area, lp, nl, lacos, cen):
     return a['area'] + 0.1 * dobra + pen, a['area']
 
 
+SAIDA_PELO_LADO = os.environ.get('FLEXI_SAIDA_PELO_LADO', '1') == '1'
+
+
 def escolher_direcao(T, A, area, lp, lacos):
     """Direção de saída sugerida: a que menos trava, sem dobrar a linha vista dela, e perto da normal da linha."""
     cen = T.mean(1)
     nl = normal_linha(lp)
     D = np.vstack([fib(40), nl, -nl])
-    sc = np.array([_nota(T, A, d, 1.6, area, lp, nl, lacos, cen)[0] for d in D])
+    # 1.57: a peça sai para o lado em que a pele dela está, a partir da linha. Sem isso, numa cabeça já aberta por outro
+    # corte, a orelha "saía" para dentro da cabeça (menos pele presa na conta) e a face nova virava uma concha que
+    # cruzava a do corpo (10 mm³ no mesmo espaço).
+    fora = None
+    if SAIDA_PELO_LADO and np.asarray(A).any():
+        wA = area[A]
+        v = (cen[A] * wA[:, None]).sum(0) / max(float(wA.sum()), 1e-12) - lp.mean(0)
+        if float(np.linalg.norm(v)) > 0.5:
+            fora = v / np.linalg.norm(v)
+
+    def nota(d_, cel_):
+        s_, a_ = _nota(T, A, d_, cel_, area, lp, nl, lacos, cen)
+        if fora is not None and float(np.dot(d_, fora)) < 0.0:
+            s_ += 1000.0
+        return s_, a_
+    sc = np.array([nota(d, 1.6)[0] for d in D])
     best = None
     for d0 in D[np.argsort(sc)[:2]]:
         for dd in [d0] + [d0 + 0.13 * x for x in fib(8)]:
             dd = dd / np.linalg.norm(dd)
-            s, a = _nota(T, A, dd, 0.8, area, lp, nl, lacos, cen)
+            s, a = nota(dd, 0.8)
             if best is None or s < best[0] - 1e-6:
                 best = (s, dd, a)
     return best[1], best[2], best[0]
@@ -826,10 +876,19 @@ def acomodar(tp, laco, Vall, pele, R, folga, a, cel, it=12, alvo_mm=1.0):
         c = nin @ d
         falta = (alvo - sd)[ruim]
         ok = np.abs(c[ruim]) > 0.25
-        mov = np.zeros((int(ruim.sum()), 3))
-        mov[ok] = (np.sign(c[ruim][ok]) * np.minimum(falta[ok] / np.abs(c[ruim][ok]), 3.0))[:, None] * d
-        mov[~ok] = falta[~ok][:, None] * nin[ruim][~ok]
-        P[ruim] += mov
+        if ACOMODAR_PARALELA:
+            # 1.57: o ponto vai para a superfície paralela à pele (o pé dele na pele, mais a distância pedida para
+            # dentro): ela é lisa como a pele. Andando pela direção de saída, cada ponto andava um tanto diferente e a
+            # faixa junto da costura ficava em dentes.
+            dirn = nin[ruim].copy()
+            usa = dentro[ruim] & (dist[ruim] > 0.05)             # o pé até o ponto é a normal de verdade (a da faceta tem ruído)
+            dirn[usa] = (P[ruim][usa] - cp[ruim][usa]) / dist[ruim][usa][:, None]
+            P[ruim] = cp[ruim] + alvo[ruim][:, None] * dirn
+        else:
+            mov = np.zeros((int(ruim.sum()), 3))
+            mov[ok] = (np.sign(c[ruim][ok]) * np.minimum(falta[ok] / np.abs(c[ruim][ok]), 3.0))[:, None] * d
+            mov[~ok] = falta[~ok][:, None] * nin[ruim][~ok]
+            P[ruim] += mov
         allP = np.vstack([Vall[lac], P])
         media = (W @ allP) / np.maximum(deg, 1)[:, None]
         P = 0.7 * P + 0.3 * media[n:]
@@ -839,7 +898,62 @@ def acomodar(tp, laco, Vall, pele, R, folga, a, cel, it=12, alvo_mm=1.0):
     return movidos
 
 
+def alisar_faixa(tp, laco, Vall, lmax=1.0, rodadas=4, it=15):
+    """1.57: a faixa que liga a linha ao miolo da tampa (tampa_parede) é costurada em zíper, com triângulos compridos
+    em leque: cada um carrega o zigue-zague da costura até o miolo e a parede fica riscada. Aqui as arestas longas da
+    tampa (fora as da própria costura) são divididas e só os pontos novos vão para a média dos vizinhos: o zigue-zague
+    fica na primeira fileira, junto da pele, e o resto da parede fica liso. A costura e os pontos antigos não mudam."""
+    from scipy.sparse import coo_matrix
+    if tp.get('contato') or tp.get('P3') is None:
+        return 0
+    lac = np.asarray(tp.get('laco', laco)); n = len(lac)
+    P = np.asarray(tp['P3'], np.float64).copy()
+    T = np.asarray(tp['tris']).copy()
+    n0 = len(P)
+    for _ in range(rodadas):
+        X = np.vstack([Vall[lac], P])
+        E_ = np.vstack([T[:, [0, 1]], T[:, [1, 2]], T[:, [2, 0]]])
+        u, inv = np.unique(np.sort(E_, 1), axis=0, return_inverse=True); inv = inv.ravel()
+        L = np.linalg.norm(X[u[:, 0]] - X[u[:, 1]], axis=1)
+        marca = (L > lmax) & ~((u[:, 0] < n) & (u[:, 1] < n))
+        if not marca.any():
+            break
+        mid = -np.ones(len(u), int); k = np.where(marca)[0]; mid[k] = len(X) + np.arange(len(k))
+        P = np.vstack([P, (X[u[k, 0]] + X[u[k, 1]]) / 2])
+        out = []
+        for t, (ab, bc, ca) in zip(T, mid[inv].reshape(3, -1).T):
+            a, b, c = t
+            s_ = int(ab >= 0) + int(bc >= 0) + int(ca >= 0)
+            if s_ == 0: out.append(t)
+            elif s_ == 3: out += [[a, ab, ca], [ab, b, bc], [ca, bc, c], [ab, bc, ca]]
+            elif s_ == 1:
+                if ab >= 0: out += [[a, ab, c], [ab, b, c]]
+                elif bc >= 0: out += [[a, b, bc], [a, bc, c]]
+                else: out += [[a, b, ca], [ca, b, c]]
+            else:
+                if ab < 0: out += [[a, b, bc], [a, bc, ca], [ca, bc, c]]
+                elif bc < 0: out += [[a, ab, ca], [ab, b, c], [ab, c, ca]]
+                else: out += [[a, ab, bc], [a, bc, c], [ab, b, bc]]
+        T = np.asarray(out, int)
+    novos = len(P) - n0
+    if not novos:
+        return 0
+    E_ = np.vstack([T[:, [0, 1]], T[:, [1, 2]], T[:, [2, 0]]])
+    nloc = n + len(P)
+    W = coo_matrix((np.ones(2 * len(E_)), (np.r_[E_[:, 0], E_[:, 1]], np.r_[E_[:, 1], E_[:, 0]])), shape=(nloc, nloc)).tocsr()
+    W.data[:] = 1.0
+    deg = np.maximum(np.asarray(W.sum(1)).ravel(), 1)
+    B = Vall[lac]
+    for _ in range(it):
+        media = ((W @ np.vstack([B, P])) / deg[:, None])[n:]
+        P[n0:] = 0.5 * P[n0:] + 0.5 * media[n0:]
+    tp['tris'] = T; tp['P3'] = P
+    return novos
+
+
+ALISAR_FAIXA = os.environ.get('FLEXI_ALISAR_FAIXA', '1') == '1'
 ALISAR_TAMPA = os.environ.get('FLEXI_ALISAR_TAMPA', '1') == '1'
+ACOMODAR_PARALELA = os.environ.get('FLEXI_ACOMODAR_PARALELA', '1') == '1'
 SOQUETE_NO_FIM = os.environ.get('FLEXI_SOQUETE_PELE', '1') == '1'
 
 
@@ -971,6 +1085,8 @@ def cortar(cur, cut, i, S, diag, centro, FC):
     pele = _Pele(Vh, Fh, lo, hi)
     for tp, laco in zip(tampas, ok_l):
         acomodar(tp, laco, Vh, pele, a['R'], folga, a, CEL)
+        if ALISAR_FAIXA:
+            alisar_faixa(tp, laco, Vh)
     pa, e1 = montar(Vh, At, tampas, ok_l, a['R'], +1, folga)
     pb, e2 = montar(Vh, Bt, tampas, ok_l, a['R'], -1, folga)
     if pa is None or pb is None:
@@ -1035,12 +1151,15 @@ def _pele_da_peca(S, pk):
     return want
 
 
-def soquete_junta(pk, pj, regiao, cut, loops, outras, diag, centro, S, FC):
+def soquete_junta(pk, pj, regiao, cut, loops, outras, diag, centro, S, FC, eixo=None, face=False):
     """Soquete navalha (freecut.socket_cut) entre a peça pk (a do corte) e a peça pj (a do outro lado da linha), dentro
     da região (as duas peças juntas, com a folga entre elas: o soquete nunca entra noutra peça). Devolve
     (peça nova, pj nova, extras, checks) ou (None, motivo) se não coube ou partiria uma peça (aí fica o pino)."""
     try:
-        r0 = dict(ok=True, checks=[], piece=pk, body_parts=[pj])
+        r0 = dict(ok=True, checks=[], piece=pk, body_parts=[pj], _fim=True)
+        if eixo is not None:
+            r0['_eixo_fit'] = eixo                    # direção de encaixe do corte pela pele: o pino pode ir nela
+            r0['_eixo_face'] = bool(face)             # navalha: é a perpendicular da face do corte
         r2, sc = FC.socket_cut(r0, regiao, loops, dict(cut, encaixe='colar', _outras=outras), diag, centro, 'colar', S,
                                _pele_da_peca(S, pk))
         if r2.get('piece') is pk:
