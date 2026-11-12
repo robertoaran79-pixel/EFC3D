@@ -3,6 +3,9 @@
 O histórico público começa na 1.50, a primeira versão aberta. Cada versão tem os pacotes de instalação em
 [Versões](../../releases).
 
+## 1.58 · 11/11/2026
+- Peças por cor: agora dá para renomear a peça de cada área pintada, como nos cortes livres. Selecione a área (aba Cortes, Separar por cor) e escreva no campo Nome. O nome vai para a lista, a prévia, o relatório e o 3MF, e fica salvo no projeto.
+
 ## 1.57 · 10/11/2026
 - Corte livre: a navalha voltou onde ela acerta. Cada corte é tentado primeiro como uma lâmina lisa (face plana e borda limpa, como até a 1.47) e fica assim quando a costura cai na linha desenhada; senão vai pela pele, com a costura exata na linha. O soquete agora entra sempre no fim, depois de todos os cortes, e não atravessa mais peça fina (a cintura oca e as faixas com sulcos).
 - Corte pela pele: a borda da face nova ficou limpa. Junto da costura a face segue uma superfície paralela à pele, em vez de cada ponto andar por conta própria (os farelos em volta do encaixe).

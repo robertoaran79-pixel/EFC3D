@@ -10,7 +10,7 @@
 //   <kbd>                                            key
 
 export const DOCS = {
-  versao: '1.57',
+  versao: '1.58',
   atualizado: '08/11/2026',
   grupos: ['Getting started', 'Step by step', 'Workflows', 'Reference'],
   topicos: [
@@ -251,6 +251,7 @@ export const DOCS = {
   <li><b>✓ Done (Enter)</b> and export in the Export tab.</li>
 </ul>
 <p>In the list, ✕ leaves the area on the body (it does not become a part) and ↺ splits it again; <kbd>Delete</kbd> does the same for the selected item and <kbd>⌘Z</kbd> undoes.</p>
+<p><b>Part name (1.58).</b> Select the area and type in the <b>Name</b> field, as with free cuts. The name shows in the list, in the preview, in the report and in the 3MF. Repeated names get a number, and an empty field goes back to the default name (Color N · area K). Free cuts drawn on that part follow the change.</p>
 <button data-show="#btn-split" data-tip="Opens the Split by color module">Show</button>
 <h3>Cut types</h3>
 <table class="t">
@@ -708,6 +709,9 @@ export const DOCS = {
   ],
 
   novidades: [
+    { versao: '1.58', data: '11/11/2026', itens: [
+      'Parts by color: you can now rename the part of each painted area, as with free cuts. Select the area (Cuts tab, Split by color) and type in the Name field. The name goes to the list, the preview, the report and the 3MF, and is saved in the project.',
+    ] },
     { versao: '1.57', data: '10/11/2026', itens: [
       'Free cut: the razor is back where it gets it right. Each cut is first tried as a smooth blade (flat face and clean edge, as up to 1.47) and stays that way when the seam lands on the drawn line; otherwise it goes along the skin, with the seam exactly on the line. The socket is now always added at the end, after all the cuts, and no longer goes through a thin piece (the hollow waist and the grooved bands).',
       'Cut along the skin: the edge of the new face is clean. Next to the seam the face follows a surface parallel to the skin, instead of each point moving on its own (the crumbs around the fit).',

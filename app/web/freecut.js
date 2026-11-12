@@ -679,7 +679,10 @@ function renderEdit() {
       if (k === 'dir_modo' && v === 'manual' && c.dir_az === undefined && c.dirSug) { c.dir_az = c.dirSug.az; c.dir_el = c.dirSug.el; c.dir_quem = 'peca'; }
       if (k === 'nome') {                                // nomes únicos: as peças e os conectores são achados pelo nome
         v = String(v).trim() || c.nome;
-        if (FC.cuts.some((x) => x !== c && x.nome === v)) { let n = 2; while (FC.cuts.some((x) => x !== c && x.nome === `${v} (${n})`)) n++; v = `${v} (${n})`; el.value = v; }
+        const outros = new Set(FC.cuts.filter((x) => x !== c).map((x) => x.nome));
+        outros.add('Corpo');
+        if (window.flexiSplit && window.flexiSplit.nomes) window.flexiSplit.nomes().forEach((x) => outros.add(x));   // peças das áreas de cor renomeadas
+        if (outros.has(v)) { let n = 2; while (outros.has(`${v} (${n})`)) n++; v = `${v} (${n})`; el.value = v; }
         // os cortes desenhados nas peças dele guardam o nome da peça: acompanham a troca
         const velho = c.nome;
         if (v !== velho) FC.cuts.forEach((x) => { if (x !== c && depende(x, velho)) x.peca = Object.assign({}, x.peca, { nome: v + x.peca.nome.slice(velho.length) }); });
@@ -952,7 +955,14 @@ function remap(mapa, masks) {
   renderList(); draw(); requestMaskDraw();
 }
 
-window.flexiFree = { FC, forExport, state, restore, close, hiddenCuts, hiddenBody: () => !!FC.corpoOculto, renderList, count: () => FC.cuts.filter((c) => c.linhas.length || (c.mask && marked(c))).length,
+// a peça de uma área de cor mudou de nome (split.js): os cortes desenhados nela acompanham
+function renamePiece(velho, novo) {
+  let n = 0;
+  FC.cuts.forEach((x) => { if (depende(x, velho)) { x.peca = Object.assign({}, x.peca, { nome: novo + x.peca.nome.slice(velho.length) }); n++; } });
+  if (n) renderList();
+  return n;
+}
+window.flexiFree = { FC, renamePiece, forExport, state, restore, close, hiddenCuts, hiddenBody: () => !!FC.corpoOculto, renderList, count: () => FC.cuts.filter((c) => c.linhas.length || (c.mask && marked(c))).length,
   newCut, startMark, finishMark, setTool, runPreview, applyResult, bucketAt, brushAt, closeLine, masksOut, remap, exportBefore, addPieceCut, changed, draw,
   surface: () => SF };
 renderList();

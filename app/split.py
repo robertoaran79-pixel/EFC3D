@@ -1520,7 +1520,17 @@ def run(S, paint, configs, progress=None):
             repl.append(dict(mesh=m, base=host['base'], nome=host['nome'] + (f' {k + 1}' if len(new_host) > 1 else ''),
                              tipo=host['tipo'], rid=host['rid'], axis=host['axis'], print_T=host['print_T'],
                              T=tri_array(m)))
-        part = dict(mesh=r['piece'], base=reg['cor'], nome=f"Cor {reg['cor']} · área {rid + 1}", tipo=prm['tipo'],
+        # nome da peça (1.58): o que o usuário deu à área, único entre as peças; senão o padrão
+        nm_ = ' '.join(str(prm.get('nome') or '').split())[:60]
+        usados_ = {p_['nome'] for p_ in pieces}
+        if not nm_ or nm_ == 'Corpo':
+            nm_ = f"Cor {reg['cor']} · área {rid + 1}"
+        elif nm_ in usados_:
+            k_ = 2
+            while f'{nm_} ({k_})' in usados_:
+                k_ += 1
+            nm_ = f'{nm_} ({k_})'
+        part = dict(mesh=r['piece'], base=reg['cor'], nome=nm_, tipo=prm['tipo'],
                     rid=rid, axis=r['axis'], print_T=r['print_T'], T=tri_array(r['piece']))
         pieces = pieces[:hk] + repl + pieces[hk + 1:] + [part]
         for e in r.get('extra', []):

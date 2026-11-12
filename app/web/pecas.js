@@ -90,7 +90,7 @@ async function loadParts(list) {
     g.computeBoundingBox();
     const div = document.createElement('div');
     div.className = 'fc-lbl';
-    div.textContent = p.tipo === 'cavilha' ? 'Cavilha' : p.tipo === 'corpo' ? p.nome : p.rid !== null && p.rid !== undefined && p.tipo !== 'livre' ? `Área ${p.rid + 1}` : p.nome;
+    div.textContent = p.tipo === 'cavilha' ? 'Cavilha' : p.tipo === 'corpo' ? p.nome : p.rid !== null && p.rid !== undefined && p.tipo !== 'livre' && /^Cor \d+ · área \d+( \d+)?$/.test(p.nome || '') ? `Área ${p.rid + 1}` : p.nome;
     div.style.display = PC.on ? '' : 'none';
     const lab = new CSS2DObject(div);
     lab.position.copy(g.boundingBox.getCenter(new THREE.Vector3()));

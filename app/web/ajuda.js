@@ -10,7 +10,7 @@
 //   <kbd>                                            tecla
 
 export const DOCS = {
-  versao: '1.57',
+  versao: '1.58',
   atualizado: '08/11/2026',
   grupos: ['Começar', 'Passo a passo', 'Fluxos de trabalho', 'Referência'],
   topicos: [
@@ -251,6 +251,7 @@ export const DOCS = {
   <li><b>✓ Concluir (Enter)</b> e exporte na aba Exportar.</li>
 </ul>
 <p>Na lista, ✕ deixa a área no corpo (não vira peça) e ↺ volta a separar; <kbd>Delete</kbd> faz o mesmo no item selecionado e <kbd>⌘Z</kbd> desfaz.</p>
+<p><b>Nome da peça (1.58).</b> Selecione a área e escreva no campo <b>Nome</b>, como nos cortes livres. O nome aparece na lista, na prévia, no relatório e no 3MF. Nomes repetidos ganham um número, e o campo vazio volta ao nome padrão (Cor N · área K). Os cortes livres desenhados nessa peça acompanham a troca.</p>
 <button data-show="#btn-split" data-tip="Abre o módulo Separar por cor">Mostrar</button>
 <h3>Tipos de corte</h3>
 <table class="t">
@@ -708,6 +709,9 @@ export const DOCS = {
   ],
 
   novidades: [
+    { versao: '1.58', data: '11/11/2026', itens: [
+      'Peças por cor: agora dá para renomear a peça de cada área pintada, como nos cortes livres. Selecione a área (aba Cortes, Separar por cor) e escreva no campo Nome. O nome vai para a lista, a prévia, o relatório e o 3MF, e fica salvo no projeto.',
+    ] },
     { versao: '1.57', data: '10/11/2026', itens: [
       'Corte livre: a navalha voltou onde ela acerta. Cada corte é tentado primeiro como uma lâmina lisa (face plana e borda limpa, como até a 1.47) e fica assim quando a costura cai na linha desenhada; senão vai pela pele, com a costura exata na linha. O soquete agora entra sempre no fim, depois de todos os cortes, e não atravessa mais peça fina (a cintura oca e as faixas com sulcos).',
       'Corte pela pele: a borda da face nova ficou limpa. Junto da costura a face segue uma superfície paralela à pele, em vez de cada ponto andar por conta própria (os farelos em volta do encaixe).',

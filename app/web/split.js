@@ -75,6 +75,9 @@ async function open() {
   renderList();
   setStatus(`${SP.regions.length} área(s) pintada(s). Clique numa área no modelo ou na lista, ajuste e veja a prévia.`);
 }
+// nome da peça de uma área (1.58): o que o usuário escreveu, ou o padrão "Cor N · área K" (o mesmo do motor)
+function nomePadrao(q) { return `Cor ${q.cor} · área ${q.id + 1}`; }
+function nomeDe(q) { const c = SP.cfg[q.id]; return String((c && c.nome) || '').trim() || nomePadrao(q); }
 function keyOf(q) { return `${q.cor}|${Math.round(q.centro[0])}|${Math.round(q.centro[1])}|${Math.round(q.centro[2])}`; }
 function close() {
   if (prevOn()) window.flexiPecas.show(false);
@@ -110,7 +113,7 @@ function renderList() {
     const meta = c.separar ? `Cor ${q.cor} · ${nf(q.area, 0)} mm² · ${TIPO_CURTO[c.tipo] || c.tipo}${c.tipo === 'auto' && res && res.tipo ? ' → ' + TIPO_CURTO[res.tipo] : ''}${c.pino !== 'nenhum' ? ' · pino' : ''}`
       : `Cor ${q.cor} · ${nf(q.area, 0)} mm² · fica no corpo`;
     const li = window.flexiUI.row({ list: 'separar', luz: luz ? LUZ[luz] : '➖', luzTitle: luz ? 'verificação' : 'não separar',
-      cor: S.palette[q.cor - 1] || '#ccc', tag: `Área ${q.id + 1}`, meta, selected: i === SP.sel, off: !c.separar,
+      cor: S.palette[q.cor - 1] || '#ccc', tag: String(c.nome || '').trim() || `Área ${q.id + 1}`, meta, selected: i === SP.sel, off: !c.separar,
       onSelect: () => select(i), hidden: !!(SP.hid && SP.hid.has(q.id)),
       onToggle: c.separar ? () => toggleHide(q) : null,
       onDelete: () => setSep(q, c, !c.separar), onDeleteSelected: () => { if (c.separar) setSep(q, c, false); }, delIcon: c.separar ? '✕' : '↺',
@@ -158,6 +161,8 @@ function renderEdit() {
   box.innerHTML = `<div class="card">
     <h3>Área ${q.id + 1} · cor ${q.cor} <span class="swatch" style="background:${S.palette[q.cor - 1] || '#ccc'}"></span></h3>
     <label class="chk"><input type="checkbox" data-k="separar" ${c.separar ? 'checked' : ''}> Separar esta área como peça</label>
+    <label>Nome<input type="text" data-k="nome" value="" maxlength="60"></label>
+    <p class="hint">O nome vai para a peça na prévia, no relatório e no 3MF. Vazio volta ao nome padrão.</p>
     <label>Tipo de corte<select data-k="tipo">${Object.entries(TIPOS).map(([k, t]) => `<option value="${k}" ${c.tipo === k ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
     <p class="hint">${HINT[c.tipo] || ''}</p>
     ${mb ? `<label>Corte<select data-k="corte">${Object.entries(CORTES).map(([k, t]) => `<option value="${k}" ${(c.corte || 'plano') === k ? 'selected' : ''}>${t}</option>`).join('')}</select></label>` : ''}
@@ -175,8 +180,12 @@ function renderEdit() {
     </div><p class="hint">A seta mostra a direção em que a peça entra. Incline se algo do modelo ficar na frente.</p>` : ''}
     <div class="row"><button class="btn" data-act="todas">Usar estas opções em todas as áreas</button></div>
   </div>`;
+  const elNome = box.querySelector('[data-k="nome"]');
+  elNome.value = c.nome || '';
+  elNome.placeholder = nomePadrao(q);
   box.querySelectorAll('[data-k]').forEach((el) => el.addEventListener('change', () => {
     const k = el.dataset.k;
+    if (k === 'nome') { renomear(q, c, el.value); return; }
     if (k === 'separar') c.separar = el.checked;
     else if (k === 'tipo' || k === 'pino' || k === 'corte') c[k] = el.value;
     else if (k === 'incl_up') c.incl_a = -num(el.value);
@@ -192,6 +201,25 @@ function renderEdit() {
     changed(); renderList();
     setStatus('Opções copiadas para todas as áreas.');
   };
+}
+// Renomear a peça de uma área. Nomes únicos: as peças, os cortes feitos nelas e os conectores são achados pelo nome.
+function renomear(q, c, v) {
+  const velho = nomeDe(q);
+  v = String(v || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+  if (v === nomePadrao(q)) v = '';
+  if (v) {
+    const free = window.flexiFree;
+    const usados = new Set(['Corpo']);
+    SP.regions.forEach((x) => { if (x.id !== q.id) usados.add(nomeDe(x)); });
+    if (free && free.FC) free.FC.cuts.forEach((x) => usados.add(x.nome));
+    if (usados.has(v)) { let n = 2; while (usados.has(`${v} (${n})`)) n++; v = `${v} (${n})`; }
+  }
+  if (v) c.nome = v; else delete c.nome;
+  const novo = nomeDe(q);
+  // os cortes livres desenhados nesta peça guardam o nome dela: acompanham a troca
+  if (novo !== velho && window.flexiFree && window.flexiFree.renamePiece) window.flexiFree.renamePiece(velho, novo);
+  changed(); renderList(); renderEdit();
+  if (novo !== velho) setStatus(`Peça renomeada: ${novo}.`);
 }
 function changed() {
   if (SP.summary) { clearPreview(); setStatus('As opções mudaram: faça a prévia de novo.'); }
@@ -269,7 +297,7 @@ function configs() {
   return SP.regions.map((q) => {
     const c = SP.cfg[q.id];
     return { id: q.id, separar: !!c.separar, tipo: c.tipo, corte: c.corte || 'plano', espessura: c.espessura || 0, profundidade: c.profundidade, folga: c.folga, suavizar: c.suavizar || 0,
-             pino: c.pino, pino_mm: c.pino_mm || 0, incl_a: c.incl_a || 0, incl_b: c.incl_b || 0 };
+             pino: c.pino, pino_mm: c.pino_mm || 0, incl_a: c.incl_a || 0, incl_b: c.incl_b || 0, nome: String(c.nome || '').trim() || null };
   });
 }
 function clearPreview() {
@@ -364,7 +392,7 @@ function state() {
   if (!SP.used || !SP.keep) return null;
   const areas = Object.values(SP.keep).map((c) => {
     const o = {};
-    ['_k', 'separar', 'tipo', 'profundidade', 'folga', 'suavizar', 'pino', 'pino_mm', 'incl_a', 'incl_b', 'corte', 'espessura'].forEach((k) => { if (c[k] !== undefined) o[k] = c[k]; });
+    ['_k', 'separar', 'tipo', 'profundidade', 'folga', 'suavizar', 'pino', 'pino_mm', 'incl_a', 'incl_b', 'corte', 'espessura', 'nome'].forEach((k) => { if (c[k] !== undefined) o[k] = c[k]; });
     return o;
   });
   return areas.length ? { versao: 1, areas } : null;
@@ -381,4 +409,4 @@ function restore(st) {
   renderPlan();
 }
 
-window.flexiSplit = { SP, open, close, hiddenAreas, runPreview, applyResult, drawMarks, select, configs, forExport, renderPlan, state, restore };
+window.flexiSplit = { SP, nomes: () => Object.values(SP.keep || {}).map((c) => String(c.nome || '').trim()).filter(Boolean), open, close, hiddenAreas, runPreview, applyResult, drawMarks, select, configs, forExport, renderPlan, state, restore };

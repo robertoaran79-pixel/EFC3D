@@ -10,7 +10,7 @@
 //   <kbd>                                            tecla
 
 export const DOCS = {
-  versao: '1.57',
+  versao: '1.58',
   atualizado: '08/11/2026',
   grupos: ['Empezar', 'Paso a paso', 'Flujos de trabajo', 'Referencia'],
   topicos: [
@@ -251,6 +251,7 @@ export const DOCS = {
   <li><b>✓ Listo (Enter)</b> y exporta en la pestaña Exportar.</li>
 </ul>
 <p>En la lista, ✕ deja el área en el cuerpo (no se convierte en pieza) y ↺ vuelve a separarla; <kbd>Delete</kbd> hace lo mismo con el elemento seleccionado y <kbd>⌘Z</kbd> deshace.</p>
+<p><b>Nombre de la pieza (1.58).</b> Seleccione el área y escriba en el campo <b>Nombre</b>, como en los cortes libres. El nombre aparece en la lista, en la vista previa, en el informe y en el 3MF. Los nombres repetidos reciben un número, y el campo vacío vuelve al nombre predeterminado (Color N · área K). Los cortes libres dibujados en esa pieza acompañan el cambio.</p>
 <button data-show="#btn-split" data-tip="Abre el módulo Separar por color">Mostrar</button>
 <h3>Tipos de corte</h3>
 <table class="t">
@@ -708,6 +709,9 @@ export const DOCS = {
   ],
 
   novidades: [
+    { versao: '1.58', data: '11/11/2026', itens: [
+      'Piezas por color: ahora se puede renombrar la pieza de cada área pintada, como en los cortes libres. Seleccione el área (pestaña Cortes, Separar por color) y escriba en el campo Nombre. El nombre va a la lista, la vista previa, el informe y el 3MF, y queda guardado en el proyecto.',
+    ] },
     { versao: '1.57', data: '10/11/2026', itens: [
       'Corte libre: la navaja volvió donde acierta. Cada corte se intenta primero como una hoja lisa (cara plana y borde limpio, como hasta la 1.47) y queda así cuando la costura cae en la línea dibujada; si no, va por la piel, con la costura exacta en la línea. El encaje ahora entra siempre al final, después de todos los cortes, y ya no atraviesa una pieza fina (la cintura hueca y las fajas con surcos).',
       'Corte por la piel: el borde de la cara nueva quedó limpio. Junto a la costura la cara sigue una superficie paralela a la piel, en vez de que cada punto se mueva por su cuenta (las migas alrededor del encaje).',
